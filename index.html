@@ -55,65 +55,60 @@
     <div id="toastContainer" class="fixed bottom-5 right-5 z-50 flex flex-col space-y-3 pointer-events-none"></div>
 
     <script>
+        // ==========================================
+        // MASUKKAN URL & KUNCI SUPABASE ANDA DISINI!
+        // ==========================================
         const SUPABASE_URL = 'https://GANTI_DENGAN_URL_PROJECT_ANDA.supabase.co';
         const SUPABASE_KEY = 'GANTI_DENGAN_ANON_KEY_ANDA';
         
-        // PERBAIKAN: Menggunakan nama variabel 'db' agar tidak tabrakan
-        const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        // PENGGUNAAN NAMA VARIABEL 'db' AGAR TIDAK ERROR
+        const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        function togglePassword() {
+            const pwd = document.getElementById('loginPassword'), icon = document.getElementById('toggleIcon');
+            if (pwd.type === 'password') { pwd.type = 'text'; icon.classList.replace('fa-eye', 'fa-eye-slash'); } 
+            else { pwd.type = 'password'; icon.classList.replace('fa-eye-slash', 'fa-eye'); }
+        }
 
         function showToast(msg, type = 'error') {
-            const toast = document.createElement('div');
-            const color = type === 'success' ? 'bg-green-500' : 'bg-red-500';
+            const toast = document.createElement('div'), color = type === 'success' ? 'bg-green-500' : 'bg-red-500', icon = type === 'success' ? 'fa-check' : 'fa-times';
             toast.className = `toast-enter ${color} text-white px-4 py-3 rounded-lg shadow-lg flex items-center max-w-sm pointer-events-auto z-[9999]`;
-            toast.innerHTML = `<div class="bg-white bg-opacity-20 rounded-full w-6 h-6 flex items-center justify-center mr-3"><i class="fas ${type === 'success' ? 'fa-check' : 'fa-times'} text-sm"></i></div><span class="text-sm font-medium">${msg}</span>`;
+            toast.innerHTML = `<div class="bg-white bg-opacity-20 rounded-full w-6 h-6 flex items-center justify-center mr-3"><i class="fas ${icon} text-sm"></i></div><span class="text-sm font-medium">${msg}</span>`;
             document.getElementById('toastContainer').appendChild(toast);
             setTimeout(() => { toast.classList.replace('toast-enter', 'toast-exit'); setTimeout(() => toast.remove(), 300); }, 3000);
         }
 
         window.handleLogin = async function(e) {
             e.preventDefault();
-            const u = document.getElementById('loginUsername').value.trim();
-            const p = document.getElementById('loginPassword').value.trim();
-            
+            // PERBAIKAN: Membaca ID yang benar dari HTML (loginEmail)
+            const email = document.getElementById('loginEmail').value.trim();
+            const password = document.getElementById('loginPassword').value.trim();
             const btn = document.getElementById('btnLogin');
+            
             btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Memproses...';
             btn.disabled = true;
 
-            try {
-                // PERBAIKAN: Menggunakan db.auth
-                const { data, error } = await db.auth.signInWithPassword({ email: u, password: p });
-                if (error) throw error;
-                
-                // PERBAIKAN: Menggunakan db.from
-                const { data: userData, error: userErr } = await db
-                    .from('pengguna')
-                    .select('*')
-                    .eq('username', u.toLowerCase())
-                    .single();
-                    
-                if (userErr) throw new Error("Data pengguna tidak ditemukan di database.");
+            // PERBAIKAN: Menggunakan db.auth
+            const { data, error } = await db.auth.signInWithPassword({ email: email, password: password });
 
-                sessionStorage.setItem('vokasi_user', JSON.stringify(userData));
-                window.location.href = "dashboard.html";
-                
-            } catch (err) {
+            if (error) {
                 btn.innerHTML = '<i class="fas fa-sign-in-alt mr-2"></i> Masuk Sistem';
                 btn.disabled = false;
-                showToast(err.message === 'Invalid login credentials' ? 'Email atau Password salah!' : err.message);
+                showToast(error.message === 'Invalid login credentials' ? 'Email atau Password salah!' : error.message);
+            } else {
+                btn.innerHTML = '<i class="fas fa-check mr-2"></i> Berhasil, mengalihkan...';
+                window.location.href = "dashboard.html";
             }
         };
 
         window.onload = async function() {
             // PERBAIKAN: Menggunakan db.auth
             const { data: { session } } = await db.auth.getSession();
-            
-            if (session && sessionStorage.getItem('vokasi_user')) {
+            if(session) {
                 const btn = document.getElementById('btnLogin');
+                document.querySelectorAll('input').forEach(i => i.disabled = true);
                 btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Membuka Dashboard...';
-                document.getElementById('loginUsername').disabled = true;
-                document.getElementById('loginPassword').disabled = true;
                 btn.disabled = true;
-                
                 window.location.href = "dashboard.html";
             }
         };
