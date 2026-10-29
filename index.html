@@ -3,57 +3,76 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Sistem Vokasi UNAIR</title>
+    <title>Login - Sistem Terpadu Vokasi</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- Supabase CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
     <style>
-        .toast-enter { animation: slideIn 0.3s ease-out forwards; }
-        .toast-exit { animation: slideOut 0.3s ease-in forwards; }
-        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-        @keyframes slideOut { from { transform: translateX(0); opacity: 1; } to { transform: translateX(100%); opacity: 0; } }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
+        .unair-blue { background-color: #003366; }
+        .unair-blue-text { color: #003366; }
+        @keyframes slideInRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
+        .toast-enter { animation: slideInRight 0.3s ease-out forwards; }
+        .toast-exit { animation: fadeOut 0.3s ease-out forwards; }
     </style>
 </head>
-<body class="bg-gray-100 h-screen flex items-center justify-center">
+<body class="bg-gray-50 flex items-center justify-center h-screen relative">
     
-    <div id="toastContainer" class="fixed top-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
-
-    <div class="bg-white p-8 rounded-lg shadow-md w-96">
-        <div class="text-center mb-8">
-            <img src="https://vokasi.unair.ac.id/wp-content/uploads/2021/04/Logo-Vokasi-UNAIR-2.png" alt="Logo Vokasi" class="h-16 mx-auto mb-4">
-            <h2 class="text-2xl font-bold text-gray-800">Sistem Informasi</h2>
-            <p class="text-gray-600">Fakultas Vokasi UNAIR</p>
+    <div class="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-sm border-t-4 border-blue-900">
+        <div class="text-center mb-6 border-b border-gray-100 pb-5">
+            <div class="w-16 h-16 rounded-full bg-blue-50 border border-blue-100 flex items-center justify-center mx-auto mb-3 shadow-inner">
+                <i class="fas fa-university unair-blue-text text-3xl"></i>
+            </div>
+            <h2 class="text-2xl font-bold unair-blue-text">Sistem Terpadu</h2>
+            <p class="text-xs text-gray-500 font-medium uppercase tracking-widest mt-1">Vokasi UNAIR</p>
         </div>
-
-        <form id="loginForm" onsubmit="handleLogin(event)">
-            <div class="mb-4">
-                <label class="block text-gray-700 text-sm font-bold mb-2" for="loginEmail">Email</label>
-                <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="loginEmail" type="email" placeholder="admin@vokasi.com" required>
+        
+        <form id="loginForm" onsubmit="handleLogin(event)" class="space-y-4">
+            <div>
+                <label for="loginEmail" class="block text-xs font-bold text-gray-600 mb-1.5 uppercase cursor-pointer">Email Akses</label>
+                <div class="relative">
+                    <i class="fas fa-envelope absolute left-3 top-2.5 text-gray-400"></i>
+                    <input type="email" id="loginEmail" placeholder="nama@vokasi.unair.ac.id" class="w-full border border-gray-300 pl-9 pr-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm font-medium bg-gray-50 focus:bg-white transition-colors" required>
+                </div>
             </div>
-            <div class="mb-6">
-                <label class="block text-gray-700 text-sm font-bold mb-2" for="loginPassword">Password</label>
-                <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline" id="loginPassword" type="password" placeholder="********" required>
+            <div>
+                <label for="loginPassword" class="block text-xs font-bold text-gray-600 mb-1.5 uppercase cursor-pointer">Password</label>
+                <div class="relative">
+                    <i class="fas fa-lock absolute left-3 top-2.5 text-gray-400"></i>
+                    <input type="password" id="loginPassword" placeholder="Masukkan password..." class="w-full border border-gray-300 pl-9 pr-10 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm font-medium bg-gray-50 focus:bg-white transition-colors" required>
+                    <button type="button" onclick="togglePassword()" class="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600 focus:outline-none"><i id="toggleIcon" class="fas fa-eye"></i></button>
+                </div>
             </div>
-            <div class="flex items-center justify-between">
-                <button id="btnLogin" class="bg-blue-800 hover:bg-blue-900 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full flex items-center justify-center transition-colors" type="submit">
-                    <i class="fas fa-sign-in-alt mr-2"></i> Masuk Sistem
-                </button>
-            </div>
+            <button type="submit" id="btnLogin" class="w-full unair-blue text-white py-2.5 rounded-lg font-bold hover:bg-blue-900 transition-colors shadow-md flex items-center justify-center disabled:opacity-70 disabled:cursor-not-allowed">
+                <i class="fas fa-sign-in-alt mr-2"></i> Masuk Sistem
+            </button>
         </form>
     </div>
+    <div id="toastContainer" class="fixed bottom-5 right-5 z-50 flex flex-col space-y-3 pointer-events-none"></div>
 
     <script>
-        // MASUKKAN KUNCI SUPABASE ANDA DI SINI
+        // ==========================================
+        // MASUKKAN URL & KUNCI SUPABASE ANDA DISINI!
+        // ==========================================
         const SUPABASE_URL = 'https://qfefcefenpmzpekejipv.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_NA2J67_E_KUKyuvsnegrHQ_2mcENfzI';
         
-        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        function togglePassword() {
+            const pwd = document.getElementById('loginPassword'), icon = document.getElementById('toggleIcon');
+            if (pwd.type === 'password') { pwd.type = 'text'; icon.classList.replace('fa-eye', 'fa-eye-slash'); } 
+            else { pwd.type = 'password'; icon.classList.replace('fa-eye-slash', 'fa-eye'); }
+        }
 
         function showToast(msg, type = 'error') {
-            const toast = document.createElement('div');
-            const color = type === 'success' ? 'bg-green-500' : 'bg-red-500';
-            toast.className = `toast-enter ${color} text-white px-4 py-3 rounded-lg shadow-lg flex items-center max-w-sm pointer-events-auto`;
-            toast.innerHTML = `<span class="text-sm font-medium">${msg}</span>`;
+            const toast = document.createElement('div'), color = type === 'success' ? 'bg-green-500' : 'bg-red-500', icon = type === 'success' ? 'fa-check' : 'fa-times';
+            toast.className = `toast-enter ${color} text-white px-4 py-3 rounded-lg shadow-lg flex items-center max-w-sm pointer-events-auto z-[9999]`;
+            toast.innerHTML = `<div class="bg-white bg-opacity-20 rounded-full w-6 h-6 flex items-center justify-center mr-3"><i class="fas ${icon} text-sm"></i></div><span class="text-sm font-medium">${msg}</span>`;
             document.getElementById('toastContainer').appendChild(toast);
             setTimeout(() => { toast.classList.replace('toast-enter', 'toast-exit'); setTimeout(() => toast.remove(), 300); }, 3000);
         }
@@ -67,31 +86,25 @@
             btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Memproses...';
             btn.disabled = true;
 
-            try {
-                const { data: authData, error: authError } = await supabaseClient.auth.signInWithPassword({ email, password });
-                if (authError) throw authError;
-                
-                const { data: userData, error: userError } = await supabaseClient
-                    .from('pengguna')
-                    .select('*')
-                    .eq('username', email.toLowerCase())
-                    .single();
-                    
-                if (userError) throw new Error("Data akses pengguna tidak ditemukan di database.");
+            const { data, error } = await supabaseClient.auth.signInWithPassword({ email: email, password: password });
 
-                sessionStorage.setItem('vokasi_user', JSON.stringify(userData));
-                window.location.href = "dashboard.html";
-                
-            } catch (err) {
+            if (error) {
                 btn.innerHTML = '<i class="fas fa-sign-in-alt mr-2"></i> Masuk Sistem';
                 btn.disabled = false;
-                showToast(err.message === 'Invalid login credentials' ? 'Email atau Password salah!' : err.message);
+                showToast(error.message === 'Invalid login credentials' ? 'Email atau Password salah!' : error.message);
+            } else {
+                btn.innerHTML = '<i class="fas fa-check mr-2"></i> Berhasil, mengalihkan...';
+                window.location.href = "dashboard.html";
             }
         };
 
         window.onload = async function() {
             const { data: { session } } = await supabaseClient.auth.getSession();
-            if (session && sessionStorage.getItem('vokasi_user')) {
+            if(session) {
+                const btn = document.getElementById('btnLogin');
+                document.querySelectorAll('input').forEach(i => i.disabled = true);
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Membuka Dashboard...';
+                btn.disabled = true;
                 window.location.href = "dashboard.html";
             }
         };
