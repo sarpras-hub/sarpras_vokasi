@@ -61,8 +61,7 @@
         const SUPABASE_URL = 'https://GANTI_DENGAN_URL_PROJECT_ANDA.supabase.co';
         const SUPABASE_KEY = 'GANTI_DENGAN_ANON_KEY_ANDA';
         
-        // PENGGUNAAN NAMA VARIABEL 'db' AGAR TIDAK ERROR
-        const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         function togglePassword() {
             const pwd = document.getElementById('loginPassword'), icon = document.getElementById('toggleIcon');
@@ -80,7 +79,6 @@
 
         window.handleLogin = async function(e) {
             e.preventDefault();
-            // PERBAIKAN: Membaca ID yang benar dari HTML (loginEmail)
             const email = document.getElementById('loginEmail').value.trim();
             const password = document.getElementById('loginPassword').value.trim();
             const btn = document.getElementById('btnLogin');
@@ -88,8 +86,7 @@
             btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Memproses...';
             btn.disabled = true;
 
-            // PERBAIKAN: Menggunakan db.auth
-            const { data, error } = await db.auth.signInWithPassword({ email: email, password: password });
+            const { data, error } = await supabase.auth.signInWithPassword({ email: email, password: password });
 
             if (error) {
                 btn.innerHTML = '<i class="fas fa-sign-in-alt mr-2"></i> Masuk Sistem';
@@ -102,8 +99,7 @@
         };
 
         window.onload = async function() {
-            // PERBAIKAN: Menggunakan db.auth
-            const { data: { session } } = await db.auth.getSession();
+            const { data: { session } } = await supabase.auth.getSession();
             if(session) {
                 const btn = document.getElementById('btnLogin');
                 document.querySelectorAll('input').forEach(i => i.disabled = true);
