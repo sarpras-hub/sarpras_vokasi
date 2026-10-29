@@ -389,8 +389,8 @@
         const SUPABASE_URL = 'https://GANTI_DENGAN_URL_PROJECT_ANDA.supabase.co';
         const SUPABASE_KEY = 'GANTI_DENGAN_ANON_KEY_ANDA';
         
-        // PENGGUNAAN NAMA VARIABEL 'db' AGAR TIDAK ERROR
-        const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        // PENGGUNAAN VARIABEL 'supabase' YANG SERAGAM
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         let currentUser = null;
         let activeRole = null, currentTab = 'anggaran', selectedYear = new Date().getFullYear().toString();
@@ -434,14 +434,14 @@
 
         window.onload = async function() {
             showLoader(true);
-            const { data: { session } } = await db.auth.getSession();
+            const { data: { session } } = await supabase.auth.getSession();
             
             if (!session) { 
                 window.location.href = "index.html"; 
                 return; 
             }
             
-            const { data: profile } = await db.from('pengguna').select('*').eq('email', session.user.email).single();
+            const { data: profile } = await supabase.from('pengguna').select('*').eq('email', session.user.email).single();
             
             if(profile) {
                 currentUser = { id: session.user.id, email: session.user.email, name: profile.nama, role: profile.role, roleName: roleNamesMap[profile.role] };
@@ -467,8 +467,8 @@
         function autoLogout() { showToast("Sesi berakhir otomatis.", "warning"); setTimeout(() => { window.handleLogout(); }, 2500); }
 
         window.handleLogout = async function() {
-            if(backgroundSyncTimer) db.removeChannel(backgroundSyncTimer);
-            await db.auth.signOut();
+            if(backgroundSyncTimer) supabase.removeChannel(backgroundSyncTimer);
+            await supabase.auth.signOut();
             sessionStorage.removeItem('vokasi_last_tab');
             window.location.href = "index.html";
         };
@@ -553,12 +553,12 @@
         window.fetchData = async function() {
             try {
                 const [angReq, konReq, ruaReq, pengReq, userReq, masterReq] = await Promise.all([
-                    db.from('anggaran').select('*').order('created_at', { ascending: false }),
-                    db.from('konsumsi').select('*').order('created_at', { ascending: false }),
-                    db.from('ruangan').select('*').order('created_at', { ascending: false }),
-                    db.from('pengaduan').select('*').order('created_at', { ascending: false }),
-                    db.from('pengguna').select('*').order('created_at', { ascending: false }),
-                    db.from('master_data').select('*').order('created_at', { ascending: false })
+                    supabase.from('anggaran').select('*').order('created_at', { ascending: false }),
+                    supabase.from('konsumsi').select('*').order('created_at', { ascending: false }),
+                    supabase.from('ruangan').select('*').order('created_at', { ascending: false }),
+                    supabase.from('pengaduan').select('*').order('created_at', { ascending: false }),
+                    supabase.from('pengguna').select('*').order('created_at', { ascending: false }),
+                    supabase.from('master_data').select('*').order('created_at', { ascending: false })
                 ]);
                 
                 allTransactions = (angReq.data || []).map(d => ({id: d.id, type: d.tipe_transaksi, date: d.tanggal, year: (d.tanggal||'').split('-')[0], category: d.kategori, subCategory: d.sub_kategori, subSubCategory: d.sub_sub_kategori, requester: d.requester, metode: d.metode_bayar, amount: d.nominal, description: d.deskripsi, isSpj: d.is_spj}));
@@ -579,8 +579,8 @@
 
         // KONEKSI REALTIME 
         function startLiveSync() {
-            if(backgroundSyncTimer) db.removeChannel(backgroundSyncTimer);
-            backgroundSyncTimer = db.channel('custom-all-channel')
+            if(backgroundSyncTimer) supabase.removeChannel(backgroundSyncTimer);
+            backgroundSyncTimer = supabase.channel('custom-all-channel')
                 .on('postgres_changes', { event: '*', schema: 'public' }, (payload) => {
                     fetchData(); 
                     const indicator = document.getElementById('liveSyncIndicator');
@@ -839,8 +839,8 @@
                 if(stat === 'Menunggu') wait++; else if(stat === 'Diproses') proc++; else if(stat === 'Selesai') done++;
                 let bgStat = stat === 'Selesai' ? 'bg-green-100 text-green-700' : (stat === 'Diproses' ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700');
                 
-                const btnAwal = t.foto_awal ? `<a href="${t.foto_awal}" target="_blank" class="text-blue-500 hover:underline text-[10px] mt-1.5 inline-block bg-blue-50 px-2 py-1 rounded border border-blue-100"><i class="fas fa-image mr-1"></i>Lihat Foto</a>` : '<span class="text-[10px] text-gray-400 mt-1 block">Tidak ada lampiran</span>';
-                const btnSelesai = t.foto_selesai ? `<a href="${t.foto_selesai}" target="_blank" class="text-green-700 hover:underline text-[10px] mt-1.5 inline-block font-bold bg-green-50 px-2 py-1 rounded border border-green-200"><i class="fas fa-check-square mr-1"></i>Bukti Penyelesaian</a>` : '';
+                const btnAwal = t.foto_awal_url ? `<a href="${t.foto_awal_url}" target="_blank" class="text-blue-500 hover:underline text-[10px] mt-1.5 inline-block bg-blue-50 px-2 py-1 rounded border border-blue-100"><i class="fas fa-image mr-1"></i>Lihat Foto</a>` : '<span class="text-[10px] text-gray-400 mt-1 block">Tidak ada lampiran</span>';
+                const btnSelesai = t.foto_selesai_url ? `<a href="${t.foto_selesai_url}" target="_blank" class="text-green-700 hover:underline text-[10px] mt-1.5 inline-block font-bold bg-green-50 px-2 py-1 rounded border border-green-200"><i class="fas fa-check-square mr-1"></i>Bukti Penyelesaian</a>` : '';
 
                 tbody.insertAdjacentHTML('beforeend', `<tr class="hover:bg-gray-50 border-b border-gray-50"><td class="px-6 py-4 whitespace-nowrap"><div class="font-bold text-xs text-gray-700">${formatDate(t.timestamp)}</div><div class="text-[10px] text-gray-400">${formatTime(t.timestamp)}</div></td><td class="px-6 py-4"><div class="font-bold text-unair-blue">${t.lokasi || '-'}</div><div class="text-[11px] text-gray-500 mt-1"><i class="fas fa-user-tag mr-1 text-gray-400"></i>${t.pelapor || 'Anonim'} ${t.identitas ? `(${t.identitas})` : ''}</div>${t.prodi ? `<div class="text-[10px] text-gray-400 mt-0.5"><i class="fas fa-building mr-1"></i>${t.prodi}</div>` : ''}</td><td class="px-6 py-4"><div class="text-xs text-gray-700 font-medium italic border-l-2 border-gray-300 pl-2">"${t.kendala || '-'}"</div>${btnAwal}</td><td class="px-6 py-4 text-center whitespace-nowrap"><span class="px-2.5 py-1 rounded-md text-xs font-bold ${bgStat} border border-transparent">${stat}</span></td><td class="px-6 py-4"><div class="text-xs font-bold text-gray-800"><i class="fas fa-user-cog mr-1 text-gray-400"></i>${t.teknisi || '-'}</div><div class="text-[11px] text-gray-600 mt-1">${t.keterangan_selesai || '-'}</div>${btnSelesai}</td><td class="px-6 py-4 text-center space-x-1 whitespace-nowrap"><button onclick="editPengaduan('${t.id}')" class="bg-white border border-gray-200 shadow-sm text-blue-600 hover:bg-blue-50 px-3 py-1.5 rounded-lg transition-colors text-xs font-bold"><i class="fas fa-clipboard-check mr-1"></i> Tindak Lanjut</button><button onclick="deleteDocHandler('pengaduan', '${t.id}')" class="bg-white border border-gray-200 shadow-sm text-red-500 hover:bg-red-50 px-2.5 py-1.5 rounded-lg transition-colors text-xs ml-1"><i class="fas fa-trash-alt"></i></button></td></tr>`);
             });
@@ -919,8 +919,8 @@
             };
             
             try {
-                if(editId) await db.from('anggaran').update(payload).eq('id', editId);
-                else await db.from('anggaran').insert([payload]);
+                if(editId) await supabase.from('anggaran').update(payload).eq('id', editId);
+                else await supabase.from('anggaran').insert([payload]);
                 closeModals(); showToast("Berhasil Disimpan", "success"); fetchData();
             } catch(err) { showToast(err.message || "Gagal simpan", "error"); }
             btn.disabled = false; btn.querySelector('.loading-icon').classList.add('hidden');
@@ -939,8 +939,8 @@
             };
             
             try {
-                if(editId) await db.from('konsumsi').update(payload).eq('id', editId);
-                else { payload.status = 'Menunggu'; payload.spj_nota = false; payload.spj_undangan = false; payload.spj_hadir = false; await db.from('konsumsi').insert([payload]); }
+                if(editId) await supabase.from('konsumsi').update(payload).eq('id', editId);
+                else { payload.status = 'Menunggu'; payload.spj_nota = false; payload.spj_undangan = false; payload.spj_hadir = false; await supabase.from('konsumsi').insert([payload]); }
                 closeModals(); showToast("Berhasil Disimpan", "success"); fetchData();
             } catch(err) { showToast("Gagal simpan", "error"); }
             btn.disabled = false; btn.querySelector('.loading-icon').classList.add('hidden');
@@ -957,8 +957,8 @@
             
             const payload = { nama_ruangan: rRoom, kegiatan: document.getElementById('ruaEvent').value, tanggal: rDate, waktu_mulai: tStart, waktu_selesai: tEnd, pic: document.getElementById('ruaPIC').value, kontak: document.getElementById('ruaCP').value };
             try {
-                if(editId) await db.from('ruangan').update(payload).eq('id', editId);
-                else { payload.status = 'Menunggu'; payload.alasan_tolak = ''; await db.from('ruangan').insert([payload]); }
+                if(editId) await supabase.from('ruangan').update(payload).eq('id', editId);
+                else { payload.status = 'Menunggu'; payload.alasan_tolak = ''; await supabase.from('ruangan').insert([payload]); }
                 closeModals(); showToast("Berhasil Disimpan", "success"); fetchData();
             } catch(err) { showToast("Gagal simpan", "error"); }
             btn.disabled = false; btn.querySelector('.loading-icon').classList.add('hidden');
@@ -977,13 +977,13 @@
                     if (file.size > 2097152) throw new Error("Ukuran foto maksimal 2 MB!");
                     const fileExt = file.name.split('.').pop(), fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
                     
-                    const { error: uploadError } = await db.storage.from('pengaduan').upload(fileName, file);
+                    const { error: uploadError } = await supabase.storage.from('pengaduan').upload(fileName, file);
                     if(uploadError) throw new Error("Gagal upload gambar, pastikan Bucket 'pengaduan' Public.");
                     
-                    const { data: pubData } = db.storage.from('pengaduan').getPublicUrl(fileName);
+                    const { data: pubData } = supabase.storage.from('pengaduan').getPublicUrl(fileName);
                     payload.foto_selesai_url = pubData.publicUrl;
                 }
-                await db.from('pengaduan').update(payload).eq('id', editId);
+                await supabase.from('pengaduan').update(payload).eq('id', editId);
                 closeModals(); showToast("Tindak Lanjut Disimpan", "success"); fetchData();
             } catch(err) { showToast(err.message || "Gagal update", "error"); }
             btn.disabled = false; btn.querySelector('.loading-icon').classList.add('hidden');
@@ -996,8 +996,8 @@
             const payload = { email: document.getElementById('userUsername').value.toLowerCase().trim(), nama: document.getElementById('userName').value.trim(), role: roleSelection };
             
             try {
-                if(editId) await db.from('pengguna').update(payload).eq('id', editId);
-                else await db.from('pengguna').insert([payload]);
+                if(editId) await supabase.from('pengguna').update(payload).eq('id', editId);
+                else await supabase.from('pengguna').insert([payload]);
                 closeModals(); showToast("Profil Disimpan", "success"); fetchData();
             } catch(err) { showToast("Gagal menyimpan akun", "error"); }
             btn.disabled = false; btn.querySelector('.loading-icon').classList.add('hidden');
@@ -1009,8 +1009,8 @@
             const editId = document.getElementById('masterEditId').value, type = document.getElementById('masterType').value;
             const payload = { tipe: type, val1: document.getElementById('masterVal1').value.trim(), val2: type === 'KategoriAnggaran' ? document.getElementById('masterVal2').value.trim() : '', val3: type === 'KategoriAnggaran' ? document.getElementById('masterVal3').value.trim() : '' };
             try {
-                if(editId) await db.from('master_data').update(payload).eq('id', editId);
-                else await db.from('master_data').insert([payload]);
+                if(editId) await supabase.from('master_data').update(payload).eq('id', editId);
+                else await supabase.from('master_data').insert([payload]);
                 closeModals(); showToast("Master Data Disimpan", "success"); fetchData();
             } catch(err) { showToast("Gagal menyimpan", "error"); }
             btn.disabled = false; btn.querySelector('.loading-icon').classList.add('hidden');
@@ -1039,18 +1039,18 @@
         };
 
         window.toggleSpjDirect = async function(id, checked) {
-            showLoader(true); try { await db.from('anggaran').update({is_spj: checked}).eq('id', id); showToast("Status SPJ diupdate", "success"); } catch(e) { showToast("Gagal update", "error"); } showLoader(false);
+            showLoader(true); try { await supabase.from('anggaran').update({is_spj: checked}).eq('id', id); showToast("Status SPJ diupdate", "success"); } catch(e) { showToast("Gagal update", "error"); } showLoader(false);
         };
         window.toggleKonsumsiStatusDirect = async function(id, checked) {
-            showLoader(true); try { await db.from('konsumsi').update({status: checked ? 'Disetujui' : 'Menunggu'}).eq('id', id); showToast("Status Konsumsi diupdate", "success"); } catch(e) { showToast("Gagal update", "error"); } showLoader(false);
+            showLoader(true); try { await supabase.from('konsumsi').update({status: checked ? 'Disetujui' : 'Menunggu'}).eq('id', id); showToast("Status Konsumsi diupdate", "success"); } catch(e) { showToast("Gagal update", "error"); } showLoader(false);
         };
         window.toggleKonsumsiSpjItem = async function(id, field, checked) {
-            try { await db.from('konsumsi').update({[field]: checked}).eq('id', id); showToast("Dokumen SPJ dicatat", "success"); } catch(e) { showToast("Gagal update", "error"); }
+            try { await supabase.from('konsumsi').update({[field]: checked}).eq('id', id); showToast("Dokumen SPJ dicatat", "success"); } catch(e) { showToast("Gagal update", "error"); }
         };
 
         window.deleteDocHandler = async function(table, id) {
             if(confirm(`Yakin ingin menghapus data secara permanen?`)) {
-                showLoader(true); try { await db.from(table).delete().eq('id', id); showToast("Data terhapus", "success"); fetchData(); } catch(e) { showToast("Gagal menghapus", "error"); } showLoader(false);
+                showLoader(true); try { await supabase.from(table).delete().eq('id', id); showToast("Data terhapus", "success"); fetchData(); } catch(e) { showToast("Gagal menghapus", "error"); } showLoader(false);
             }
         };
 
@@ -1108,7 +1108,7 @@
         window.editRuangan = function(id) { const data = allRuangan.find(t => t.id === id); if(!data) return; document.getElementById('ruaEditId').value = data.id; document.getElementById('ruaName').value = data.roomName || ''; document.getElementById('ruaEvent').value = data.event || ''; document.getElementById('ruaDate').value = safeExtractDate(data.date); ensureTimeInDropdown('ruaTimeStart', data.timeStart); document.getElementById('ruaTimeStart').value = formatTime(data.timeStart) || ''; ensureTimeInDropdown('ruaTimeEnd', data.timeEnd); document.getElementById('ruaTimeEnd').value = formatTime(data.timeEnd) || ''; document.getElementById('ruaPIC').value = data.pic || ''; document.getElementById('ruaCP').value = data.cp || ''; openContextModal(); };
         window.editPengguna = function(id) { const data = allPengguna.find(t => t.id === id); if(!data) return; document.getElementById('userEditId').value = data.id; document.getElementById('userUsername').value = data.username || ''; document.getElementById('userName').value = data.name || ''; document.getElementById('userRole').value = data.role || 'admin'; openModalPengguna(); };
         window.editMaster = function(id) { const data = allMaster.find(t => t.id === id); if(!data) return; document.getElementById('masterEditId').value = data.id; document.getElementById('masterType').value = data.type || 'KategoriAnggaran'; toggleMasterFields(); document.getElementById('masterVal1').value = data.val1 || ''; if(data.type === 'KategoriAnggaran') { document.getElementById('masterVal2').value = data.val2 || ''; document.getElementById('masterVal3').value = data.val3 || ''; } openModalMaster(); };
-        window.editPengaduan = function(id) { const data = allPengaduan.find(t => t.id === id); if(!data) return; document.getElementById('aduanEditId').value = data.id; document.getElementById('aduanDetailLokasi').innerHTML = `<i class="fas fa-map-marker-alt mr-1.5 text-blue-500"></i>Lokasi: ${data.lokasi || '-'}`; document.getElementById('aduanDetailPelapor').innerHTML = `<i class="fas fa-user mr-1 text-gray-500"></i>${data.pelapor || 'Anonim'} ${data.identitas ? `(${data.identitas})` : ''} ${data.prodi ? `- ${data.prodi}` : ''}`; document.getElementById('aduanDetailKendala').textContent = `Kendala: "${data.kendala || '-'}"`; document.getElementById('aduanStatus').value = data.status || 'Menunggu'; document.getElementById('aduanTeknisi').value = data.teknisi || (currentUser?.name || ''); document.getElementById('aduanKetSelesai').value = data.keterangan_selesai || ''; document.getElementById('aduanFotoSelesaiFile').value = ''; const exist = document.getElementById('aduanFotoSelesaiExisting'), link = document.getElementById('aduanFotoSelesaiLink'); if (data.foto_selesai) { exist.classList.remove('hidden'); link.href = data.foto_selesai; } else { exist.classList.add('hidden'); } const modal = document.getElementById('modalPengaduan'); modal.classList.remove('hidden'); setTimeout(() => { modal.querySelector('.modal-content').classList.remove('scale-95', 'opacity-0'); }, 10); };
+        window.editPengaduan = function(id) { const data = allPengaduan.find(t => t.id === id); if(!data) return; document.getElementById('aduanEditId').value = data.id; document.getElementById('aduanDetailLokasi').innerHTML = `<i class="fas fa-map-marker-alt mr-1.5 text-blue-500"></i>Lokasi: ${data.lokasi || '-'}`; document.getElementById('aduanDetailPelapor').innerHTML = `<i class="fas fa-user mr-1 text-gray-500"></i>${data.pelapor || 'Anonim'} ${data.identitas ? `(${data.identitas})` : ''} ${data.prodi ? `- ${data.prodi}` : ''}`; document.getElementById('aduanDetailKendala').textContent = `Kendala: "${data.kendala || '-'}"`; document.getElementById('aduanStatus').value = data.status || 'Menunggu'; document.getElementById('aduanTeknisi').value = data.teknisi || (currentUser?.name || ''); document.getElementById('aduanKetSelesai').value = data.keterangan_selesai || ''; document.getElementById('aduanFotoSelesaiFile').value = ''; const exist = document.getElementById('aduanFotoSelesaiExisting'), link = document.getElementById('aduanFotoSelesaiLink'); if (data.foto_selesai_url) { exist.classList.remove('hidden'); link.href = data.foto_selesai_url; } else { exist.classList.add('hidden'); } const modal = document.getElementById('modalPengaduan'); modal.classList.remove('hidden'); setTimeout(() => { modal.querySelector('.modal-content').classList.remove('scale-95', 'opacity-0'); }, 10); };
 
         window.handleRoomStatusChange = function(id, oldStatus, selectElement) {
             const newStatus = selectElement.value;
@@ -1117,7 +1117,7 @@
         };
         window.closeRejectModal = function(cancel) { if (cancel && pendingRejectSelect) pendingRejectSelect.value = pendingRejectOldStatus; const modal = document.getElementById('modalReject'); modal.querySelector('.modal-content').classList.add('scale-95', 'opacity-0'); setTimeout(() => { modal.classList.add('hidden'); }, 300); pendingRejectDoc = null; pendingRejectSelect = null; pendingRejectOldStatus = null; };
         window.submitRejectReason = function() { const reason = document.getElementById('rejectReasonInput').value.trim(); if(!reason) return showToast("Alasan wajib diisi!", "warning"); updateRoomStatus(pendingRejectDoc, 'Ditolak', reason); closeRejectModal(false); };
-        async function updateRoomStatus(id, status, reason) { showLoader(true); try { await db.from('ruangan').update({status: status, alasan_tolak: reason}).eq('id', id); showToast("Status ruangan diupdate", "success"); fetchData(); } catch(e) { showToast("Gagal update", "error"); showLoader(false); } }
+        async function updateRoomStatus(id, status, reason) { showLoader(true); try { await supabase.from('ruangan').update({status: status, alasan_tolak: reason}).eq('id', id); showToast("Status ruangan diupdate", "success"); fetchData(); } catch(e) { showToast("Gagal update", "error"); showLoader(false); } }
         
         function initCharts() {
             if (typeof Chart === 'undefined') return; Chart.defaults.font.family = "'Inter', sans-serif";
