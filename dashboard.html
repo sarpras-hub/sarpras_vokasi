@@ -389,8 +389,8 @@
         const SUPABASE_URL = 'https://GANTI_DENGAN_URL_PROJECT_ANDA.supabase.co';
         const SUPABASE_KEY = 'GANTI_DENGAN_ANON_KEY_ANDA';
         
-        // PENGGUNAAN VARIABEL 'supabase' YANG SERAGAM
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        // PENGGUNAAN VARIABEL 'supabaseClient' AGAR TIDAK BENTROK DENGAN CDN
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         let currentUser = null;
         let activeRole = null, currentTab = 'anggaran', selectedYear = new Date().getFullYear().toString();
@@ -434,14 +434,14 @@
 
         window.onload = async function() {
             showLoader(true);
-            const { data: { session } } = await supabase.auth.getSession();
+            const { data: { session } } = await supabaseClient.auth.getSession();
             
             if (!session) { 
                 window.location.href = "index.html"; 
                 return; 
             }
             
-            const { data: profile } = await supabase.from('pengguna').select('*').eq('email', session.user.email).single();
+            const { data: profile } = await supabaseClient.from('pengguna').select('*').eq('email', session.user.email).single();
             
             if(profile) {
                 currentUser = { id: session.user.id, email: session.user.email, name: profile.nama, role: profile.role, roleName: roleNamesMap[profile.role] };
@@ -467,8 +467,8 @@
         function autoLogout() { showToast("Sesi berakhir otomatis.", "warning"); setTimeout(() => { window.handleLogout(); }, 2500); }
 
         window.handleLogout = async function() {
-            if(backgroundSyncTimer) supabase.removeChannel(backgroundSyncTimer);
-            await supabase.auth.signOut();
+            if(backgroundSyncTimer) supabaseClient.removeChannel(backgroundSyncTimer);
+            await supabaseClient.auth.signOut();
             sessionStorage.removeItem('vokasi_last_tab');
             window.location.href = "index.html";
         };
@@ -553,12 +553,12 @@
         window.fetchData = async function() {
             try {
                 const [angReq, konReq, ruaReq, pengReq, userReq, masterReq] = await Promise.all([
-                    supabase.from('anggaran').select('*').order('created_at', { ascending: false }),
-                    supabase.from('konsumsi').select('*').order('created_at', { ascending: false }),
-                    supabase.from('ruangan').select('*').order('created_at', { ascending: false }),
-                    supabase.from('pengaduan').select('*').order('created_at', { ascending: false }),
-                    supabase.from('pengguna').select('*').order('created_at', { ascending: false }),
-                    supabase.from('master_data').select('*').order('created_at', { ascending: false })
+                    supabaseClient.from('anggaran').select('*').order('created_at', { ascending: false }),
+                    supabaseClient.from('konsumsi').select('*').order('created_at', { ascending: false }),
+                    supabaseClient.from('ruangan').select('*').order('created_at', { ascending: false }),
+                    supabaseClient.from('pengaduan').select('*').order('created_at', { ascending: false }),
+                    supabaseClient.from('pengguna').select('*').order('created_at', { ascending: false }),
+                    supabaseClient.from('master_data').select('*').order('created_at', { ascending: false })
                 ]);
                 
                 allTransactions = (angReq.data || []).map(d => ({id: d.id, type: d.tipe_transaksi, date: d.tanggal, year: (d.tanggal||'').split('-')[0], category: d.kategori, subCategory: d.sub_kategori, subSubCategory: d.sub_sub_kategori, requester: d.requester, metode: d.metode_bayar, amount: d.nominal, description: d.deskripsi, isSpj: d.is_spj}));
@@ -579,8 +579,8 @@
 
         // KONEKSI REALTIME 
         function startLiveSync() {
-            if(backgroundSyncTimer) supabase.removeChannel(backgroundSyncTimer);
-            backgroundSyncTimer = supabase.channel('custom-all-channel')
+            if(backgroundSyncTimer) supabaseClient.removeChannel(backgroundSyncTimer);
+            backgroundSyncTimer = supabaseClient.channel('custom-all-channel')
                 .on('postgres_changes', { event: '*', schema: 'public' }, (payload) => {
                     fetchData(); 
                     const indicator = document.getElementById('liveSyncIndicator');
@@ -919,8 +919,8 @@
             };
             
             try {
-                if(editId) await supabase.from('anggaran').update(payload).eq('id', editId);
-                else await supabase.from('anggaran').insert([payload]);
+                if(editId) await supabaseClient.from('anggaran').update(payload).eq('id', editId);
+                else await supabaseClient.from('anggaran').insert([payload]);
                 closeModals(); showToast("Berhasil Disimpan", "success"); fetchData();
             } catch(err) { showToast(err.message || "Gagal simpan", "error"); }
             btn.disabled = false; btn.querySelector('.loading-icon').classList.add('hidden');
@@ -939,8 +939,8 @@
             };
             
             try {
-                if(editId) await supabase.from('konsumsi').update(payload).eq('id', editId);
-                else { payload.status = 'Menunggu'; payload.spj_nota = false; payload.spj_undangan = false; payload.spj_hadir = false; await supabase.from('konsumsi').insert([payload]); }
+                if(editId) await supabaseClient.from('konsumsi').update(payload).eq('id', editId);
+                else { payload.status = 'Menunggu'; payload.spj_nota = false; payload.spj_undangan = false; payload.spj_hadir = false; await supabaseClient.from('konsumsi').insert([payload]); }
                 closeModals(); showToast("Berhasil Disimpan", "success"); fetchData();
             } catch(err) { showToast("Gagal simpan", "error"); }
             btn.disabled = false; btn.querySelector('.loading-icon').classList.add('hidden');
@@ -957,8 +957,8 @@
             
             const payload = { nama_ruangan: rRoom, kegiatan: document.getElementById('ruaEvent').value, tanggal: rDate, waktu_mulai: tStart, waktu_selesai: tEnd, pic: document.getElementById('ruaPIC').value, kontak: document.getElementById('ruaCP').value };
             try {
-                if(editId) await supabase.from('ruangan').update(payload).eq('id', editId);
-                else { payload.status = 'Menunggu'; payload.alasan_tolak = ''; await supabase.from('ruangan').insert([payload]); }
+                if(editId) await supabaseClient.from('ruangan').update(payload).eq('id', editId);
+                else { payload.status = 'Menunggu'; payload.alasan_tolak = ''; await supabaseClient.from('ruangan').insert([payload]); }
                 closeModals(); showToast("Berhasil Disimpan", "success"); fetchData();
             } catch(err) { showToast("Gagal simpan", "error"); }
             btn.disabled = false; btn.querySelector('.loading-icon').classList.add('hidden');
@@ -977,13 +977,13 @@
                     if (file.size > 2097152) throw new Error("Ukuran foto maksimal 2 MB!");
                     const fileExt = file.name.split('.').pop(), fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
                     
-                    const { error: uploadError } = await supabase.storage.from('pengaduan').upload(fileName, file);
+                    const { error: uploadError } = await supabaseClient.storage.from('pengaduan').upload(fileName, file);
                     if(uploadError) throw new Error("Gagal upload gambar, pastikan Bucket 'pengaduan' Public.");
                     
-                    const { data: pubData } = supabase.storage.from('pengaduan').getPublicUrl(fileName);
+                    const { data: pubData } = supabaseClient.storage.from('pengaduan').getPublicUrl(fileName);
                     payload.foto_selesai_url = pubData.publicUrl;
                 }
-                await supabase.from('pengaduan').update(payload).eq('id', editId);
+                await supabaseClient.from('pengaduan').update(payload).eq('id', editId);
                 closeModals(); showToast("Tindak Lanjut Disimpan", "success"); fetchData();
             } catch(err) { showToast(err.message || "Gagal update", "error"); }
             btn.disabled = false; btn.querySelector('.loading-icon').classList.add('hidden');
@@ -996,8 +996,8 @@
             const payload = { email: document.getElementById('userUsername').value.toLowerCase().trim(), nama: document.getElementById('userName').value.trim(), role: roleSelection };
             
             try {
-                if(editId) await supabase.from('pengguna').update(payload).eq('id', editId);
-                else await supabase.from('pengguna').insert([payload]);
+                if(editId) await supabaseClient.from('pengguna').update(payload).eq('id', editId);
+                else await supabaseClient.from('pengguna').insert([payload]);
                 closeModals(); showToast("Profil Disimpan", "success"); fetchData();
             } catch(err) { showToast("Gagal menyimpan akun", "error"); }
             btn.disabled = false; btn.querySelector('.loading-icon').classList.add('hidden');
@@ -1009,8 +1009,8 @@
             const editId = document.getElementById('masterEditId').value, type = document.getElementById('masterType').value;
             const payload = { tipe: type, val1: document.getElementById('masterVal1').value.trim(), val2: type === 'KategoriAnggaran' ? document.getElementById('masterVal2').value.trim() : '', val3: type === 'KategoriAnggaran' ? document.getElementById('masterVal3').value.trim() : '' };
             try {
-                if(editId) await supabase.from('master_data').update(payload).eq('id', editId);
-                else await supabase.from('master_data').insert([payload]);
+                if(editId) await supabaseClient.from('master_data').update(payload).eq('id', editId);
+                else await supabaseClient.from('master_data').insert([payload]);
                 closeModals(); showToast("Master Data Disimpan", "success"); fetchData();
             } catch(err) { showToast("Gagal menyimpan", "error"); }
             btn.disabled = false; btn.querySelector('.loading-icon').classList.add('hidden');
@@ -1039,18 +1039,18 @@
         };
 
         window.toggleSpjDirect = async function(id, checked) {
-            showLoader(true); try { await supabase.from('anggaran').update({is_spj: checked}).eq('id', id); showToast("Status SPJ diupdate", "success"); } catch(e) { showToast("Gagal update", "error"); } showLoader(false);
+            showLoader(true); try { await supabaseClient.from('anggaran').update({is_spj: checked}).eq('id', id); showToast("Status SPJ diupdate", "success"); } catch(e) { showToast("Gagal update", "error"); } showLoader(false);
         };
         window.toggleKonsumsiStatusDirect = async function(id, checked) {
-            showLoader(true); try { await supabase.from('konsumsi').update({status: checked ? 'Disetujui' : 'Menunggu'}).eq('id', id); showToast("Status Konsumsi diupdate", "success"); } catch(e) { showToast("Gagal update", "error"); } showLoader(false);
+            showLoader(true); try { await supabaseClient.from('konsumsi').update({status: checked ? 'Disetujui' : 'Menunggu'}).eq('id', id); showToast("Status Konsumsi diupdate", "success"); } catch(e) { showToast("Gagal update", "error"); } showLoader(false);
         };
         window.toggleKonsumsiSpjItem = async function(id, field, checked) {
-            try { await supabase.from('konsumsi').update({[field]: checked}).eq('id', id); showToast("Dokumen SPJ dicatat", "success"); } catch(e) { showToast("Gagal update", "error"); }
+            try { await supabaseClient.from('konsumsi').update({[field]: checked}).eq('id', id); showToast("Dokumen SPJ dicatat", "success"); } catch(e) { showToast("Gagal update", "error"); }
         };
 
         window.deleteDocHandler = async function(table, id) {
             if(confirm(`Yakin ingin menghapus data secara permanen?`)) {
-                showLoader(true); try { await supabase.from(table).delete().eq('id', id); showToast("Data terhapus", "success"); fetchData(); } catch(e) { showToast("Gagal menghapus", "error"); } showLoader(false);
+                showLoader(true); try { await supabaseClient.from(table).delete().eq('id', id); showToast("Data terhapus", "success"); fetchData(); } catch(e) { showToast("Gagal menghapus", "error"); } showLoader(false);
             }
         };
 
@@ -1117,7 +1117,7 @@
         };
         window.closeRejectModal = function(cancel) { if (cancel && pendingRejectSelect) pendingRejectSelect.value = pendingRejectOldStatus; const modal = document.getElementById('modalReject'); modal.querySelector('.modal-content').classList.add('scale-95', 'opacity-0'); setTimeout(() => { modal.classList.add('hidden'); }, 300); pendingRejectDoc = null; pendingRejectSelect = null; pendingRejectOldStatus = null; };
         window.submitRejectReason = function() { const reason = document.getElementById('rejectReasonInput').value.trim(); if(!reason) return showToast("Alasan wajib diisi!", "warning"); updateRoomStatus(pendingRejectDoc, 'Ditolak', reason); closeRejectModal(false); };
-        async function updateRoomStatus(id, status, reason) { showLoader(true); try { await supabase.from('ruangan').update({status: status, alasan_tolak: reason}).eq('id', id); showToast("Status ruangan diupdate", "success"); fetchData(); } catch(e) { showToast("Gagal update", "error"); showLoader(false); } }
+        async function updateRoomStatus(id, status, reason) { showLoader(true); try { await supabaseClient.from('ruangan').update({status: status, alasan_tolak: reason}).eq('id', id); showToast("Status ruangan diupdate", "success"); fetchData(); } catch(e) { showToast("Gagal update", "error"); showLoader(false); } }
         
         function initCharts() {
             if (typeof Chart === 'undefined') return; Chart.defaults.font.family = "'Inter', sans-serif";
