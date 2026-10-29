@@ -61,7 +61,7 @@
         const SUPABASE_URL = 'https://GANTI_DENGAN_URL_PROJECT_ANDA.supabase.co';
         const SUPABASE_KEY = 'GANTI_DENGAN_ANON_KEY_ANDA';
         
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         function togglePassword() {
             const pwd = document.getElementById('loginPassword'), icon = document.getElementById('toggleIcon');
@@ -86,7 +86,7 @@
             btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Memproses...';
             btn.disabled = true;
 
-            const { data, error } = await supabase.auth.signInWithPassword({ email: email, password: password });
+            const { data, error } = await supabaseClient.auth.signInWithPassword({ email: email, password: password });
 
             if (error) {
                 btn.innerHTML = '<i class="fas fa-sign-in-alt mr-2"></i> Masuk Sistem';
@@ -99,7 +99,7 @@
         };
 
         window.onload = async function() {
-            const { data: { session } } = await supabase.auth.getSession();
+            const { data: { session } } = await supabaseClient.auth.getSession();
             if(session) {
                 const btn = document.getElementById('btnLogin');
                 document.querySelectorAll('input').forEach(i => i.disabled = true);
