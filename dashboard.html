@@ -368,12 +368,29 @@
     <div id="modalMaster" class="fixed inset-0 bg-gray-900 bg-opacity-60 hidden z-50 flex items-center justify-center backdrop-blur-sm transition-opacity p-4">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm transform transition-transform scale-95 opacity-0 modal-content">
             <div class="flex justify-between items-center p-5 border-b border-gray-100 bg-gray-50 rounded-t-2xl"><h3 class="text-lg font-bold unair-blue-text" id="modalMasterTitle">Tambah Data Master</h3><button onclick="closeModals()" class="text-gray-400 hover:text-gray-600 bg-white rounded-full p-1 shadow-sm"><i class="fas fa-times w-5 h-5 flex items-center justify-center"></i></button></div>
-            <form id="formMaster" class="p-6 space-y-4">
+            <form id="formMaster" class="p-6 space-y-4 max-h-[80vh] overflow-y-auto">
                 <input type="hidden" id="masterEditId">
                 <div><label class="block text-xs font-bold text-gray-600 mb-1 uppercase tracking-wide">Tipe Master Data</label><select id="masterType" onchange="toggleMasterFields()" required class="w-full border-gray-300 rounded-lg px-3 py-2 bg-gray-50 border focus:bg-white outline-none focus:ring-2 focus:ring-blue-500 text-sm font-medium"><option value="KategoriAnggaran">Kategori Anggaran</option><option value="Ruangan">Ruang / Lokasi</option><option value="Konsumsi">Jenis Konsumsi</option></select></div>
                 <div><label id="lblMasterVal1" class="block text-xs font-bold text-gray-600 mb-1 uppercase tracking-wide">Menu Kategori</label><input type="text" id="masterVal1" required placeholder="Contoh: Belanja Pegawai..." class="w-full border-gray-300 rounded-lg px-3 py-2 bg-gray-50 border focus:bg-white outline-none focus:ring-2 focus:ring-blue-500 text-sm font-medium"></div>
                 <div id="divMasterVal2"><label id="lblMasterVal2" class="block text-xs font-bold text-gray-600 mb-1 uppercase tracking-wide">Sub Kategori</label><input type="text" id="masterVal2" placeholder="Contoh: Honorarium..." class="w-full border-gray-300 rounded-lg px-3 py-2 bg-gray-50 border focus:bg-white outline-none focus:ring-2 focus:ring-blue-500 text-sm font-medium"></div>
                 <div id="divMasterVal3"><label id="lblMasterVal3" class="block text-xs font-bold text-gray-600 mb-1 uppercase tracking-wide">Detail Sub Item</label><input type="text" id="masterVal3" placeholder="Contoh: Dosen Tidak Tetap..." class="w-full border-gray-300 rounded-lg px-3 py-2 bg-gray-50 border focus:bg-white outline-none focus:ring-2 focus:ring-blue-500 text-sm font-medium"></div>
+                
+                <!-- TAMBAHAN: Container khusus untuk Ruang/Lokasi -->
+                <div id="formRuangEkstra" class="space-y-4 hidden border-t border-gray-100 pt-3 mt-1">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-600 mb-1 uppercase tracking-wide">Kapasitas (Orang)</label>
+                        <input type="number" id="masterKapasitas" class="w-full border-gray-300 rounded-lg px-3 py-2 bg-gray-50 border focus:bg-white outline-none focus:ring-2 focus:ring-blue-500 text-sm font-medium" placeholder="Contoh: 40">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-600 mb-1 uppercase tracking-wide">Fasilitas</label>
+                        <textarea id="masterFasilitas" class="w-full border-gray-300 rounded-lg px-3 py-2 bg-gray-50 border focus:bg-white outline-none focus:ring-2 focus:ring-blue-500 text-sm font-medium" rows="2" placeholder="Contoh: AC, Proyektor, Sound System"></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-600 mb-1 uppercase tracking-wide">Ukuran Ruang</label>
+                        <input type="text" id="masterUkuran" class="w-full border-gray-300 rounded-lg px-3 py-2 bg-gray-50 border focus:bg-white outline-none focus:ring-2 focus:ring-blue-500 text-sm font-medium" placeholder="Contoh: 8x10 meter">
+                    </div>
+                </div>
+
                 <div class="pt-2"><button type="submit" id="btnSubmitMaster" class="w-full unair-blue text-white font-bold py-3 rounded-lg hover:bg-blue-900 transition-colors shadow-md flex justify-center items-center"><span id="btnSubmitMasterText">Simpan Data Master</span><i class="fas fa-spinner fa-spin ml-2 hidden loading-icon"></i></button></div>
             </form>
         </div>
@@ -568,7 +585,10 @@
                 allRuangan = (ruaReq.data || []).map(d => ({id: d.id, roomName: d.nama_ruangan, event: d.kegiatan, date: d.tanggal, year: (d.tanggal||'').split('-')[0], timeStart: d.waktu_mulai, timeEnd: d.waktu_selesai, pic: d.pic, cp: d.kontak, status: d.status, rejectReason: d.alasan_tolak, kapasitas: d.kapasitas, fasilitas: d.fasilitas}));
                 allPengaduan = (pengReq.data || []).map(d => ({id: d.id, timestamp: d.created_at, lokasi: d.lokasi, pelapor: d.pelapor, identitas: d.identitas, prodi: d.prodi, kendala: d.kendala, status: d.status, teknisi: d.teknisi, keterangan_selesai: d.keterangan_selesai, foto_awal: d.foto_awal_url, foto_selesai: d.foto_selesai_url}));
                 allPengguna = (userReq.data || []).map(d => ({id: d.id, username: d.email, name: d.nama, role: d.role}));
-                allMaster = (masterReq.data || []).map(d => ({id: d.id, type: d.tipe, val1: d.val1, val2: d.val2, val3: d.val3}));
+                allMaster = (masterReq.data || []).map(d => ({
+                    id: d.id, type: d.tipe, val1: d.val1, val2: d.val2, val3: d.val3,
+                    kapasitas: d.kapasitas, fasilitas: d.fasilitas, ukuran_ruang: d.ukuran_ruang
+                }));
 
                 processAllData();
                 startLiveSync();
@@ -605,6 +625,7 @@
         function buildDynamicMasterData() {
             budgetCategories = {}; 
             const roomOptions = [];
+            window.roomMasterDetails = {}; // Menyimpan detail ruang untuk Auto-fill
             const konsumsiOptions = [];
 
             (allMaster || []).forEach(m => {
@@ -615,7 +636,9 @@
                         if(!budgetCategories[m.val1][m.val2]) budgetCategories[m.val1][m.val2] = [];
                         if(m.val3 && !budgetCategories[m.val1][m.val2].includes(m.val3)) budgetCategories[m.val1][m.val2].push(m.val3);
                     }
-                } else if(m.type === 'Ruangan') { roomOptions.push(m.val1);
+                } else if(m.type === 'Ruangan') { 
+                    roomOptions.push(m.val1);
+                    window.roomMasterDetails[m.val1] = { kapasitas: m.kapasitas, fasilitas: m.fasilitas, ukuran: m.ukuran_ruang };
                 } else if(m.type === 'Konsumsi') { konsumsiOptions.push(m.val1); }
             });
 
@@ -1005,16 +1028,42 @@
             btn.disabled = false; btn.querySelector('.loading-icon').classList.add('hidden');
         });
 
+        // Fitur Auto-Fill saat memilih Ruangan di form Peminjaman
+        document.getElementById('ruaName')?.addEventListener('change', function(e) {
+            const rName = e.target.value;
+            if(rName && window.roomMasterDetails && window.roomMasterDetails[rName]) {
+                const details = window.roomMasterDetails[rName];
+                if(details.kapasitas) document.getElementById('ruaKapasitas').value = details.kapasitas;
+                
+                let fasDesc = details.fasilitas || '';
+                if(details.ukuran) fasDesc = (fasDesc ? fasDesc + ' | ' : '') + 'Ukuran: ' + details.ukuran;
+                if(fasDesc) document.getElementById('ruaFasilitas').value = fasDesc;
+            }
+        });
+
         document.getElementById('formMaster').addEventListener('submit', async (e) => {
             e.preventDefault(); if(!currentUser || currentUser.role !== 'admin') return;
             const btn = document.getElementById('btnSubmitMaster'); btn.disabled = true; btn.querySelector('.loading-icon').classList.remove('hidden');
             const editId = document.getElementById('masterEditId').value, type = document.getElementById('masterType').value;
-            const payload = { tipe: type, val1: document.getElementById('masterVal1').value.trim(), val2: type === 'KategoriAnggaran' ? document.getElementById('masterVal2').value.trim() : '', val3: type === 'KategoriAnggaran' ? document.getElementById('masterVal3').value.trim() : '' };
+            const payload = { 
+                tipe: type, 
+                val1: document.getElementById('masterVal1').value.trim(), 
+                val2: type === 'KategoriAnggaran' ? document.getElementById('masterVal2').value.trim() : '', 
+                val3: type === 'KategoriAnggaran' ? document.getElementById('masterVal3').value.trim() : '' 
+            };
+
+            // Masukkan atribut tambahan khusus ruangan
+            if(type === 'Ruangan') {
+                payload.kapasitas = parseInt(document.getElementById('masterKapasitas').value) || 0;
+                payload.fasilitas = document.getElementById('masterFasilitas').value.trim();
+                payload.ukuran_ruang = document.getElementById('masterUkuran').value.trim();
+            }
+
             try {
                 if(editId) await supabaseClient.from('master_data').update(payload).eq('id', editId);
                 else await supabaseClient.from('master_data').insert([payload]);
                 closeModals(); showToast("Master Data Disimpan", "success"); fetchData();
-            } catch(err) { showToast("Gagal menyimpan", "error"); }
+            } catch(err) { showToast("Gagal menyimpan. Pastikan SQL sudah dijalankan di Supabase.", "error"); }
             btn.disabled = false; btn.querySelector('.loading-icon').classList.add('hidden');
         });
 
@@ -1076,10 +1125,10 @@
             if(currentVal && Array.from(subSubSelect.options).some(o => o.value === currentVal)) subSubSelect.value = currentVal;
         };
         window.toggleMasterFields = function() {
-            const type = document.getElementById('masterType').value, lbl1 = document.getElementById('lblMasterVal1'), v2 = document.getElementById('divMasterVal2'), v3 = document.getElementById('divMasterVal3');
-            if(type === 'KategoriAnggaran') { lbl1.textContent = 'Menu Kategori'; v2.style.display = 'block'; v3.style.display = 'block'; } 
-            else if(type === 'Ruangan') { lbl1.textContent = 'Nama Ruang / Lokasi'; v2.style.display = 'none'; v3.style.display = 'none'; } 
-            else { lbl1.textContent = 'Nama Jenis Konsumsi'; v2.style.display = 'none'; v3.style.display = 'none'; }
+            const type = document.getElementById('masterType').value, lbl1 = document.getElementById('lblMasterVal1'), v2 = document.getElementById('divMasterVal2'), v3 = document.getElementById('divMasterVal3'), formEkstra = document.getElementById('formRuangEkstra');
+            if(type === 'KategoriAnggaran') { lbl1.textContent = 'Menu Kategori'; v2.style.display = 'block'; v3.style.display = 'block'; if(formEkstra) formEkstra.classList.add('hidden'); } 
+            else if(type === 'Ruangan') { lbl1.textContent = 'Nama Ruang / Lokasi'; v2.style.display = 'none'; v3.style.display = 'none'; if(formEkstra) formEkstra.classList.remove('hidden'); } 
+            else { lbl1.textContent = 'Nama Jenis Konsumsi'; v2.style.display = 'none'; v3.style.display = 'none'; if(formEkstra) formEkstra.classList.add('hidden'); }
         };
 
         window.openContextModal = function() {
@@ -1099,7 +1148,13 @@
                         if(id === 'modalAnggaran') { document.getElementById('angEditId').value = ''; document.getElementById('categoryBalanceInfo').classList.add('hidden'); document.getElementById('metodeWrapper').classList.add('hidden'); document.getElementById('budgetWarningAlert').classList.add('hidden'); } 
                         else if(id === 'modalPengaduan') { document.getElementById('aduanEditId').value = ''; document.getElementById('aduanFotoSelesaiFile').value = ''; document.getElementById('aduanFotoSelesaiExisting').classList.add('hidden'); }
                         else if(id === 'modalKonsumsi') { document.getElementById('konEditId').value = ''; } else if(id === 'modalRuangan') { document.getElementById('ruaEditId').value = ''; } 
-                        else if(id === 'modalPengguna') { document.getElementById('userEditId').value = ''; } else if(id === 'modalMaster') { document.getElementById('masterEditId').value = ''; }
+                        else if(id === 'modalPengguna') { document.getElementById('userEditId').value = ''; } 
+                        else if(id === 'modalMaster') { 
+                            document.getElementById('masterEditId').value = ''; 
+                            document.getElementById('masterKapasitas').value = '';
+                            document.getElementById('masterFasilitas').value = '';
+                            document.getElementById('masterUkuran').value = '';
+                        }
                     }, 300);
                 }
             });
@@ -1109,7 +1164,22 @@
         window.editKonsumsi = function(id) { const data = allKonsumsi.find(t => t.id === id); if(!data) return; document.getElementById('konEditId').value = data.id; document.getElementById('konEvent').value = data.event || ''; document.getElementById('konDate').value = safeExtractDate(data.date); ensureTimeInDropdown('konTime', data.time); document.getElementById('konTime').value = formatTime(data.time) || ''; document.getElementById('konRoom').value = data.room || ''; document.getElementById('konPIC').value = data.pic || ''; document.getElementById('konType').value = data.type || ''; document.getElementById('konPortion').value = data.portion || 0; document.getElementById('konUnitPrice').value = data.unitPrice || 0; document.getElementById('konAmount').value = data.amount || 0; document.getElementById('konNotes').value = data.notes || ''; openContextModal(); };
         window.editRuangan = function(id) { const data = allRuangan.find(t => t.id === id); if(!data) return; document.getElementById('ruaEditId').value = data.id; document.getElementById('ruaName').value = data.roomName || ''; document.getElementById('ruaEvent').value = data.event || ''; document.getElementById('ruaDate').value = safeExtractDate(data.date); ensureTimeInDropdown('ruaTimeStart', data.timeStart); document.getElementById('ruaTimeStart').value = formatTime(data.timeStart) || ''; ensureTimeInDropdown('ruaTimeEnd', data.timeEnd); document.getElementById('ruaTimeEnd').value = formatTime(data.timeEnd) || ''; document.getElementById('ruaKapasitas').value = data.kapasitas || 0; document.getElementById('ruaFasilitas').value = data.fasilitas || ''; document.getElementById('ruaPIC').value = data.pic || ''; document.getElementById('ruaCP').value = data.cp || ''; openContextModal(); };
         window.editPengguna = function(id) { const data = allPengguna.find(t => t.id === id); if(!data) return; document.getElementById('userEditId').value = data.id; document.getElementById('userUsername').value = data.username || ''; document.getElementById('userName').value = data.name || ''; document.getElementById('userRole').value = data.role || 'admin'; openModalPengguna(); };
-        window.editMaster = function(id) { const data = allMaster.find(t => t.id === id); if(!data) return; document.getElementById('masterEditId').value = data.id; document.getElementById('masterType').value = data.type || 'KategoriAnggaran'; toggleMasterFields(); document.getElementById('masterVal1').value = data.val1 || ''; if(data.type === 'KategoriAnggaran') { document.getElementById('masterVal2').value = data.val2 || ''; document.getElementById('masterVal3').value = data.val3 || ''; } openModalMaster(); };
+        window.editMaster = function(id) { 
+            const data = allMaster.find(t => t.id === id); if(!data) return; 
+            document.getElementById('masterEditId').value = data.id; 
+            document.getElementById('masterType').value = data.type || 'KategoriAnggaran'; 
+            toggleMasterFields(); 
+            document.getElementById('masterVal1').value = data.val1 || ''; 
+            if(data.type === 'KategoriAnggaran') { 
+                document.getElementById('masterVal2').value = data.val2 || ''; 
+                document.getElementById('masterVal3').value = data.val3 || ''; 
+            } else if (data.type === 'Ruangan') {
+                document.getElementById('masterKapasitas').value = data.kapasitas || '';
+                document.getElementById('masterFasilitas').value = data.fasilitas || '';
+                document.getElementById('masterUkuran').value = data.ukuran_ruang || '';
+            }
+            openModalMaster(); 
+        };
         window.editPengaduan = function(id) { const data = allPengaduan.find(t => t.id === id); if(!data) return; document.getElementById('aduanEditId').value = data.id; document.getElementById('aduanDetailLokasi').innerHTML = `<i class="fas fa-map-marker-alt mr-1.5 text-blue-500"></i>Lokasi: ${data.lokasi || '-'}`; document.getElementById('aduanDetailPelapor').innerHTML = `<i class="fas fa-user mr-1 text-gray-500"></i>${data.pelapor || 'Anonim'} ${data.identitas ? `(${data.identitas})` : ''} ${data.prodi ? `- ${data.prodi}` : ''}`; document.getElementById('aduanDetailKendala').textContent = `Kendala: "${data.kendala || '-'}"`; document.getElementById('aduanStatus').value = data.status || 'Menunggu'; document.getElementById('aduanTeknisi').value = data.teknisi || (currentUser?.name || ''); document.getElementById('aduanKetSelesai').value = data.keterangan_selesai || ''; document.getElementById('aduanFotoSelesaiFile').value = ''; const exist = document.getElementById('aduanFotoSelesaiExisting'), link = document.getElementById('aduanFotoSelesaiLink'); if (data.foto_selesai_url) { exist.classList.remove('hidden'); link.href = data.foto_selesai_url; } else { exist.classList.add('hidden'); } const modal = document.getElementById('modalPengaduan'); modal.classList.remove('hidden'); setTimeout(() => { modal.querySelector('.modal-content').classList.remove('scale-95', 'opacity-0'); }, 10); };
 
         window.handleRoomStatusChange = function(id, oldStatus, selectElement) {
