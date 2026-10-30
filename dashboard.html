@@ -9,6 +9,8 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <!-- Supabase CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- TAMBAHAN: Library pembuat QR Code -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
@@ -201,6 +203,10 @@
                             <h3 class="text-base font-bold text-gray-800">Daftar Pengaduan Sarana & Prasarana</h3>
                             <div class="flex flex-wrap items-center gap-2">
                                 <select id="filterAduanStatus" onchange="renderPengaduan()" class="text-sm border-gray-300 rounded-md shadow-sm px-3 py-1.5 focus:ring-blue-500 outline-none"><option value="">Semua Status</option><option value="Menunggu">Menunggu</option><option value="Diproses">Diproses</option><option value="Selesai">Selesai</option></select>
+                                <!-- TAMBAHAN: Tombol Cetak QR Code -->
+                                <button onclick="openModalQR()" class="bg-blue-600 text-white font-semibold px-4 py-1.5 rounded-lg shadow hover:bg-blue-700 transition-colors flex items-center text-sm ml-2">
+                                    <i class="fas fa-qrcode mr-2"></i> QR Code Publik
+                                </button>
                             </div>
                         </div>
                         <div class="overflow-x-auto"><table class="w-full text-left border-collapse"><thead><tr class="bg-white text-gray-400 text-xs uppercase tracking-wider border-b border-gray-100"><th class="px-6 py-3 font-semibold">Waktu Lapor</th><th class="px-6 py-3 font-semibold">Pelapor & Lokasi</th><th class="px-6 py-3 font-semibold">Kendala & Bukti Awal</th><th class="px-6 py-3 font-semibold text-center">Status</th><th class="px-6 py-3 font-semibold">Tindak Lanjut Teknisi</th><th class="px-6 py-3 font-semibold text-center">Aksi</th></tr></thead><tbody id="pengaduanTable" class="text-sm divide-y divide-gray-50 bg-white"></tbody></table></div>
@@ -396,6 +402,31 @@
         </div>
     </div>
 
+    <!-- TAMBAHAN: Modal QR Code Publik -->
+    <div id="modalQR" class="fixed inset-0 bg-gray-900 bg-opacity-60 hidden z-50 flex items-center justify-center backdrop-blur-sm transition-opacity p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm transform transition-transform scale-95 opacity-0 modal-content p-6 text-center relative overflow-hidden">
+            <button onclick="closeModals()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 bg-gray-100 rounded-full w-8 h-8 flex items-center justify-center shadow-sm"><i class="fas fa-times"></i></button>
+            
+            <div class="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center mx-auto mb-3 shadow-inner mt-2">
+                <i class="fas fa-qrcode unair-blue-text text-xl"></i>
+            </div>
+            <h3 class="text-lg font-bold text-gray-800 mb-1">Cetak & Bagikan QR Code</h3>
+            <p class="text-xs text-gray-500 mb-6">Scan kode ini menggunakan HP untuk membuka Form Pengaduan Fasilitas (Tanpa Login).</p>
+            
+            <div class="bg-gray-50 p-4 rounded-xl border border-gray-200 inline-block mb-4 shadow-sm">
+                <div id="qrcodeBox" class="flex justify-center items-center bg-white p-2 rounded-lg border border-gray-100"></div>
+            </div>
+            
+            <div class="text-left bg-blue-50 p-3 rounded-lg border border-blue-100 mt-2">
+                <p class="text-[10px] text-blue-800 font-medium mb-1"><i class="fas fa-link mr-1"></i> Tautan Langsung:</p>
+                <div class="flex items-center space-x-2">
+                    <input type="text" id="publicFormLink" readonly class="text-xs w-full bg-white border border-blue-200 rounded px-2 py-1.5 outline-none text-gray-600">
+                    <button onclick="copyFormLink()" class="bg-blue-600 text-white px-3 py-1.5 rounded text-xs font-bold hover:bg-blue-700 transition-colors"><i class="fas fa-copy"></i></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div id="toastContainer" class="fixed bottom-5 right-5 z-50 flex flex-col space-y-3 pointer-events-none"></div>
 
     <!-- ============================================== -->
@@ -405,8 +436,8 @@
         // ==========================================
         // MASUKKAN URL & KUNCI SUPABASE ANDA DISINI!
         // ==========================================
-        const SUPABASE_URL = 'https://qfefcefenpmzpekejipv.supabase.co';
-        const SUPABASE_KEY = 'sb_publishable_NA2J67_E_KUKyuvsnegrHQ_2mcENfzI';
+        const SUPABASE_URL = 'https://GANTI_DENGAN_URL_PROJECT_ANDA.supabase.co';
+        const SUPABASE_KEY = 'GANTI_DENGAN_ANON_KEY_ANDA';
         
         // PENGGUNAAN VARIABEL 'supabaseClient' AGAR TIDAK BENTROK DENGAN CDN
         const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -1138,8 +1169,43 @@
         };
         window.openModalPengguna = function() { const modal = document.getElementById('modalPengguna'); if(modal) { modal.classList.remove('hidden'); setTimeout(() => { modal.querySelector('.modal-content').classList.remove('scale-95', 'opacity-0'); }, 10); } };
         window.openModalMaster = function() { toggleMasterFields(); const modal = document.getElementById('modalMaster'); if(modal) { modal.classList.remove('hidden'); setTimeout(() => { modal.querySelector('.modal-content').classList.remove('scale-95', 'opacity-0'); }, 10); } };
+        
+        // TAMBAHAN: Logika Modal QR Code
+        window.openModalQR = function() {
+            const modal = document.getElementById('modalQR');
+            if(modal) { 
+                modal.classList.remove('hidden'); 
+                setTimeout(() => { modal.querySelector('.modal-content').classList.remove('scale-95', 'opacity-0'); }, 10); 
+                
+                // Menentukan URL form (Misalnya berada di satu folder yang sama)
+                let currentUrl = window.location.href;
+                let formUrl = currentUrl.substring(0, currentUrl.lastIndexOf("/")) + "/form-pengaduan.html";
+                
+                document.getElementById('publicFormLink').value = formUrl;
+                
+                // Generate QR Code
+                const qrBox = document.getElementById('qrcodeBox');
+                qrBox.innerHTML = ""; // Clear existing
+                new QRCode(qrBox, {
+                    text: formUrl,
+                    width: 180,
+                    height: 180,
+                    colorDark : "#003366",
+                    colorLight : "#ffffff",
+                    correctLevel : QRCode.CorrectLevel.H
+                });
+            } 
+        };
+        window.copyFormLink = function() {
+            const copyText = document.getElementById("publicFormLink");
+            copyText.select();
+            copyText.setSelectionRange(0, 99999);
+            document.execCommand("copy");
+            showToast("Tautan berhasil disalin!", "success");
+        };
+
         window.closeModals = function() {
-            ['modalAnggaran', 'modalKonsumsi', 'modalRuangan', 'modalReject', 'modalPengguna', 'modalMaster', 'modalPengaduan'].forEach(id => {
+            ['modalAnggaran', 'modalKonsumsi', 'modalRuangan', 'modalReject', 'modalPengguna', 'modalMaster', 'modalPengaduan', 'modalQR'].forEach(id => {
                 const modal = document.getElementById(id);
                 if(modal && !modal.classList.contains('hidden')) {
                     modal.querySelector('.modal-content').classList.add('scale-95', 'opacity-0');
