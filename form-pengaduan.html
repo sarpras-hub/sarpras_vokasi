@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Form Pengaduan Fasilitas - Vokasi UNAIR</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- Supabase CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
+        .unair-blue { background-color: #003366; }
+        .unair-blue-text { color: #003366; }
+        .unair-yellow { background-color: #FDB714; }
+        .glass-panel { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col relative">
+
+    <!-- Loading Overlay -->
+    <div id="loader" class="fixed inset-0 bg-white z-[99] flex flex-col items-center justify-center hidden opacity-90">
+        <i class="fas fa-spinner fa-spin text-4xl unair-blue-text mb-4"></i>
+        <p class="text-sm font-bold text-gray-700" id="loaderText">Mengirim laporan Anda...</p>
+    </div>
+
+    <!-- Header -->
+    <div class="unair-blue text-white p-6 shadow-md rounded-b-3xl relative z-10">
+        <div class="flex items-center space-x-4 mb-2">
+            <div class="w-12 h-12 rounded-full bg-white flex items-center justify-center shadow-inner">
+                <i class="fas fa-university unair-blue-text text-xl"></i>
+            </div>
+            <div>
+                <h1 class="font-bold text-lg leading-tight unair-yellow-text">Lapor Fasilitas</h1>
+                <p class="text-xs text-blue-200">Fakultas Vokasi UNAIR</p>
+            </div>
+        </div>
+        <p class="text-sm text-blue-100 mt-4 leading-relaxed">Formulir ini digunakan untuk melaporkan kerusakan sarana dan prasarana di lingkungan Fakultas Vokasi.</p>
+    </div>
+
+    <!-- Form Area -->
+    <div class="flex-1 px-4 -mt-4 relative z-20 pb-10" id="formArea">
+        <form id="publicPengaduanForm" class="bg-white p-6 rounded-2xl shadow-xl space-y-5 border border-gray-100">
+            
+            <div class="bg-blue-50 p-3 rounded-xl border border-blue-100 text-xs text-blue-800 flex items-start">
+                <i class="fas fa-info-circle mt-0.5 mr-2"></i>
+                <p>Bantu teknisi kami dengan mendeskripsikan lokasi dan kendala sejelas mungkin. Lampirkan foto jika ada.</p>
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1.5 uppercase tracking-wide">Lokasi Kerusakan <span class="text-red-500">*</span></label>
+                <input type="text" id="inpLokasi" required placeholder="Contoh: Toilet Lantai 2 Gedung A" class="w-full border-gray-300 rounded-xl px-4 py-3 bg-gray-50 border focus:bg-white outline-none focus:ring-2 focus:ring-blue-500 text-sm font-medium transition-colors">
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1.5 uppercase tracking-wide">Detail Kendala <span class="text-red-500">*</span></label>
+                <textarea id="inpKendala" required rows="3" placeholder="Deskripsikan kerusakannya... Contoh: Kran wastafel bocor dan air menggenang." class="w-full border-gray-300 rounded-xl px-4 py-3 bg-gray-50 border focus:bg-white outline-none focus:ring-2 focus:ring-blue-500 text-sm font-medium transition-colors"></textarea>
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1.5 uppercase tracking-wide">Foto Bukti (Opsional, disarankan)</label>
+                <div class="relative border-2 border-dashed border-gray-300 rounded-xl p-4 bg-gray-50 text-center hover:bg-gray-100 transition-colors cursor-pointer" onclick="document.getElementById('inpFoto').click()">
+                    <i class="fas fa-camera text-2xl text-gray-400 mb-2"></i>
+                    <p class="text-xs font-medium text-gray-500" id="fotoLabel">Ketuk untuk mengambil/memilih foto</p>
+                    <input type="file" id="inpFoto" accept="image/png, image/jpeg, image/jpg, capture=camera" class="hidden" onchange="updateFotoLabel(this)">
+                </div>
+                <p class="text-[10px] text-gray-400 mt-1.5 text-center">* Maksimal 2 MB (Format JPEG/PNG)</p>
+            </div>
+
+            <div class="border-t border-gray-100 pt-4 mt-2">
+                <label class="block text-xs font-bold text-gray-700 mb-1.5 uppercase tracking-wide">Nama Pelapor (Opsional)</label>
+                <input type="text" id="inpPelapor" placeholder="Nama Anda (Boleh dikosongi)" class="w-full border-gray-300 rounded-xl px-4 py-2.5 bg-gray-50 border focus:bg-white outline-none focus:ring-2 focus:ring-blue-500 text-sm font-medium transition-colors mb-3">
+                
+                <label class="block text-xs font-bold text-gray-700 mb-1.5 uppercase tracking-wide">No. Identitas / Prodi (Opsional)</label>
+                <input type="text" id="inpIdentitas" placeholder="NIM / NIP / Program Studi" class="w-full border-gray-300 rounded-xl px-4 py-2.5 bg-gray-50 border focus:bg-white outline-none focus:ring-2 focus:ring-blue-500 text-sm font-medium transition-colors">
+            </div>
+
+            <button type="submit" class="w-full unair-blue text-white font-bold py-3.5 rounded-xl hover:bg-blue-900 transition-colors shadow-lg flex justify-center items-center text-sm mt-4">
+                <i class="fas fa-paper-plane mr-2"></i> Kirim Laporan Sekarang
+            </button>
+        </form>
+    </div>
+
+    <!-- Success Screen (Hidden initially) -->
+    <div id="successArea" class="hidden flex-1 flex flex-col items-center justify-center p-6 text-center -mt-10 relative z-20">
+        <div class="w-24 h-24 bg-green-100 text-green-600 rounded-full flex items-center justify-center text-4xl mb-6 shadow-sm">
+            <i class="fas fa-check"></i>
+        </div>
+        <h2 class="text-2xl font-bold text-gray-800 mb-2">Laporan Terkirim!</h2>
+        <p class="text-gray-600 text-sm mb-8">Terima kasih atas kepedulian Anda. Laporan kerusakan telah masuk ke sistem dan akan segera ditindaklanjuti oleh tim teknisi kami.</p>
+        <button onclick="window.location.reload()" class="bg-white text-gray-700 border border-gray-300 font-bold py-3 px-8 rounded-xl hover:bg-gray-50 transition-colors shadow-sm text-sm">
+            Lapor Kerusakan Lainnya
+        </button>
+    </div>
+
+    <script>
+        // ==========================================
+        // MASUKKAN URL & KUNCI SUPABASE ANDA DISINI!
+        // (Sama dengan yang ada di dashboard)
+        // ==========================================
+        const SUPABASE_URL = 'https://GANTI_DENGAN_URL_PROJECT_ANDA.supabase.co';
+        const SUPABASE_KEY = 'GANTI_DENGAN_ANON_KEY_ANDA';
+        
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        function updateFotoLabel(input) {
+            const label = document.getElementById('fotoLabel');
+            if (input.files && input.files[0]) {
+                const file = input.files[0];
+                if (file.size > 2 * 1024 * 1024) { // 2MB Check
+                    alert('Ukuran foto terlalu besar! Maksimal 2 MB.');
+                    input.value = '';
+                    label.innerHTML = 'Ketuk untuk mengambil/memilih foto';
+                    return;
+                }
+                label.innerHTML = `<span class="text-blue-600 font-bold"><i class="fas fa-image mr-1"></i> ${file.name}</span>`;
+            } else {
+                label.innerHTML = 'Ketuk untuk mengambil/memilih foto';
+            }
+        }
+
+        document.getElementById('publicPengaduanForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const btn = e.target.querySelector('button[type="submit"]');
+            const loader = document.getElementById('loader');
+            const loaderText = document.getElementById('loaderText');
+            
+            btn.disabled = true;
+            loader.classList.remove('hidden');
+
+            const payload = {
+                lokasi: document.getElementById('inpLokasi').value,
+                kendala: document.getElementById('inpKendala').value,
+                pelapor: document.getElementById('inpPelapor').value || 'Anonim',
+                identitas: document.getElementById('inpIdentitas').value || '-',
+                status: 'Menunggu'
+            };
+
+            try {
+                // 1. Handle Upload Foto jika ada
+                const fileInput = document.getElementById('inpFoto');
+                if (fileInput.files.length > 0) {
+                    loaderText.textContent = "Mengunggah foto bukti...";
+                    const file = fileInput.files[0];
+                    const fileExt = file.name.split('.').pop();
+                    const fileName = `public_${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+                    
+                    const { error: uploadError } = await supabase.storage
+                        .from('pengaduan')
+                        .upload(fileName, file, { cacheControl: '3600', upsert: false });
+                        
+                    if (uploadError) throw new Error("Gagal mengupload foto. Pastikan kebijakan Public Upload diaktifkan.");
+                    
+                    const { data: pubData } = supabase.storage.from('pengaduan').getPublicUrl(fileName);
+                    payload.foto_awal_url = pubData.publicUrl;
+                }
+
+                // 2. Insert ke Database
+                loaderText.textContent = "Menyimpan data laporan...";
+                const { error: insertError } = await supabase.from('pengaduan').insert([payload]);
+                
+                if (insertError) throw new Error(insertError.message);
+
+                // 3. Sukses
+                document.getElementById('formArea').classList.add('hidden');
+                document.getElementById('successArea').classList.remove('hidden');
+
+            } catch (error) {
+                alert("Terjadi kesalahan: " + error.message + "\n\nPastikan pengaturan 'Row Level Security (RLS)' untuk publik sudah diaktifkan di Supabase.");
+                btn.disabled = false;
+            } finally {
+                loader.classList.add('hidden');
+            }
+        });
+    </script>
+</body>
+</html>
