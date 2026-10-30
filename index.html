@@ -48,7 +48,7 @@
                 </div>
             </div>
             <button type="submit" id="btnLogin" class="w-full unair-blue text-white py-2.5 rounded-lg font-bold hover:bg-blue-900 transition-colors shadow-md flex items-center justify-center disabled:opacity-70 disabled:cursor-not-allowed">
-                <i class="fas fa-sign-in-alt mr-2"></i> Masuk Sistem
+                <i class="fas fa-sign-in-alt mr-2"></i> Masuk
             </button>
         </form>
     </div>
@@ -89,7 +89,7 @@
             const { data, error } = await supabaseClient.auth.signInWithPassword({ email: email, password: password });
 
             if (error) {
-                btn.innerHTML = '<i class="fas fa-sign-in-alt mr-2"></i> Masuk Sistem';
+                btn.innerHTML = '<i class="fas fa-sign-in-alt mr-2"></i> Masuk';
                 btn.disabled = false;
                 showToast(error.message === 'Invalid login credentials' ? 'Email atau Password salah!' : error.message);
             } else {
