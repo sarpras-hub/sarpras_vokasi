@@ -103,7 +103,7 @@
         const SUPABASE_URL = 'https://GANTI_DENGAN_URL_PROJECT_ANDA.supabase.co';
         const SUPABASE_KEY = 'GANTI_DENGAN_ANON_KEY_ANDA';
         
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         function updateFotoLabel(input) {
             const label = document.getElementById('fotoLabel');
@@ -148,19 +148,19 @@
                     const fileExt = file.name.split('.').pop();
                     const fileName = `public_${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
                     
-                    const { error: uploadError } = await supabase.storage
+                    const { error: uploadError } = await supabaseClient.storage
                         .from('pengaduan')
                         .upload(fileName, file, { cacheControl: '3600', upsert: false });
                         
                     if (uploadError) throw new Error("Gagal mengupload foto. Pastikan kebijakan Public Upload diaktifkan.");
                     
-                    const { data: pubData } = supabase.storage.from('pengaduan').getPublicUrl(fileName);
+                    const { data: pubData } = supabaseClient.storage.from('pengaduan').getPublicUrl(fileName);
                     payload.foto_awal_url = pubData.publicUrl;
                 }
 
                 // 2. Insert ke Database
                 loaderText.textContent = "Menyimpan data laporan...";
-                const { error: insertError } = await supabase.from('pengaduan').insert([payload]);
+                const { error: insertError } = await supabaseClient.from('pengaduan').insert([payload]);
                 
                 if (insertError) throw new Error(insertError.message);
 
