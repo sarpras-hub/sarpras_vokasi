@@ -732,7 +732,7 @@
             const { data: { session } } = await supabaseClient.auth.getSession();
             
             if (!session) { 
-                window.location.href = "index.html"; 
+                window.location.href = "login.html"; 
                 return; 
             }
             
@@ -765,7 +765,7 @@
             if(backgroundSyncTimer) supabaseClient.removeChannel(backgroundSyncTimer);
             await supabaseClient.auth.signOut();
             sessionStorage.removeItem('vokasi_last_tab');
-            window.location.href = "index.html";
+            window.location.href = "login.html";
         };
 
         function setupAccessControl(role) {
