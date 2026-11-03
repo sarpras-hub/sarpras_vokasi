@@ -4,7 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Form Pengaduan Fasilitas - Vokasi UNAIR</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <!-- Supabase CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -15,16 +17,26 @@
         .unair-blue { background-color: #003366; }
         .unair-blue-text { color: #003366; }
         .unair-yellow { background-color: #FDB714; }
+        .unair-yellow-text { color: #FDB714; }
         .glass-panel { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
+        
+        /* Animasi Toast */
+        @keyframes slideInRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
+        .toast-enter { animation: slideInRight 0.3s ease-out forwards; }
+        .toast-exit { animation: fadeOut 0.3s ease-out forwards; }
     </style>
 </head>
-<body class="bg-gray-100 min-h-screen flex flex-col relative">
+<body class="bg-gray-100 min-h-screen flex flex-col relative overflow-x-hidden">
 
     <!-- Loading Overlay -->
-    <div id="loader" class="fixed inset-0 bg-white z-[99] flex flex-col items-center justify-center hidden opacity-90">
+    <div id="loader" class="fixed inset-0 bg-white z-[99] flex flex-col items-center justify-center hidden opacity-90 backdrop-blur-sm transition-opacity">
         <i class="fas fa-spinner fa-spin text-4xl unair-blue-text mb-4"></i>
         <p class="text-sm font-bold text-gray-700" id="loaderText">Mengirim laporan Anda...</p>
     </div>
+
+    <!-- Container Toast Notification -->
+    <div id="toastContainer" class="fixed top-5 left-1/2 transform -translate-x-1/2 w-full max-w-sm z-[100] flex flex-col space-y-3 pointer-events-none px-4"></div>
 
     <!-- Header -->
     <div class="unair-blue text-white p-6 shadow-md rounded-b-3xl relative z-10">
@@ -61,10 +73,20 @@
 
             <div>
                 <label class="block text-xs font-bold text-gray-700 mb-1.5 uppercase tracking-wide">Foto Bukti (Opsional, disarankan)</label>
-                <div class="relative border-2 border-dashed border-gray-300 rounded-xl p-4 bg-gray-50 text-center hover:bg-gray-100 transition-colors cursor-pointer" onclick="document.getElementById('inpFoto').click()">
-                    <i class="fas fa-camera text-2xl text-gray-400 mb-2"></i>
-                    <p class="text-xs font-medium text-gray-500" id="fotoLabel">Ketuk untuk mengambil/memilih foto</p>
-                    <input type="file" id="inpFoto" accept="image/png, image/jpeg, image/jpg, capture=camera" class="hidden" onchange="updateFotoLabel(this)">
+                <div class="relative border-2 border-dashed border-gray-300 rounded-xl p-4 bg-gray-50 text-center hover:bg-gray-100 transition-colors cursor-pointer overflow-hidden group" onclick="document.getElementById('inpFoto').click()">
+                    
+                    <!-- Icon Placeholder -->
+                    <div id="fotoIcon">
+                        <i class="fas fa-camera text-2xl text-gray-400 mb-2 group-hover:text-blue-500 transition-colors"></i>
+                    </div>
+
+                    <!-- Image Preview Container (Hidden by default) -->
+                    <div id="fotoPreviewContainer" class="hidden mb-2 relative rounded-lg overflow-hidden max-h-40 flex justify-center bg-black bg-opacity-5">
+                        <img id="fotoPreview" src="" alt="Preview Foto" class="object-contain max-h-40">
+                    </div>
+
+                    <p class="text-xs font-medium text-gray-500 truncate px-2" id="fotoLabel">Ketuk untuk mengambil/memilih foto</p>
+                    <input type="file" id="inpFoto" accept="image/png, image/jpeg, capture=camera" class="hidden" onchange="updateFotoLabel(this)">
                 </div>
                 <p class="text-[10px] text-gray-400 mt-1.5 text-center">* Maksimal 2 MB (Format JPEG/PNG)</p>
             </div>
@@ -85,42 +107,86 @@
 
     <!-- Success Screen (Hidden initially) -->
     <div id="successArea" class="hidden flex-1 flex flex-col items-center justify-center p-6 text-center -mt-10 relative z-20">
-        <div class="w-24 h-24 bg-green-100 text-green-600 rounded-full flex items-center justify-center text-4xl mb-6 shadow-sm">
+        <div class="w-24 h-24 bg-green-100 text-green-600 rounded-full flex items-center justify-center text-4xl mb-6 shadow-md border-4 border-white">
             <i class="fas fa-check"></i>
         </div>
         <h2 class="text-2xl font-bold text-gray-800 mb-2">Laporan Terkirim!</h2>
-        <p class="text-gray-600 text-sm mb-8">Terima kasih atas kepedulian Anda. Laporan kerusakan telah masuk ke sistem dan akan segera ditindaklanjuti oleh tim teknisi kami.</p>
+        <p class="text-gray-600 text-sm mb-8 px-4">Terima kasih atas kepedulian Anda. Laporan kerusakan telah masuk ke sistem dan akan segera ditindaklanjuti oleh tim teknisi kami.</p>
         <button onclick="window.location.reload()" class="bg-white text-gray-700 border border-gray-300 font-bold py-3 px-8 rounded-xl hover:bg-gray-50 transition-colors shadow-sm text-sm">
-            Lapor Kerusakan Lainnya
+            <i class="fas fa-redo-alt mr-2"></i>Lapor Kerusakan Lainnya
         </button>
     </div>
 
     <script>
         // ==========================================
-        // MASUKKAN URL & KUNCI SUPABASE ANDA DISINI!
-        // (Sama dengan yang ada di dashboard)
+        // KONFIGURASI SUPABASE
         // ==========================================
         const SUPABASE_URL = 'https://qfefcefenpmzpekejipv.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_NA2J67_E_KUKyuvsnegrHQ_2mcENfzI';
         
         const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+        // Custom Toast Notification System
+        function showToast(msg, type = 'error') {
+            const toast = document.createElement('div');
+            const color = type === 'success' ? 'bg-green-500' : (type === 'warning' ? 'bg-yellow-500' : 'bg-red-500');
+            const icon = type === 'success' ? 'fa-check' : (type === 'warning' ? 'fa-exclamation-triangle' : 'fa-times');
+            
+            toast.className = `toast-enter ${color} text-white px-4 py-3 rounded-lg shadow-lg flex items-center pointer-events-auto w-full mx-auto`;
+            toast.innerHTML = `<div class="bg-white bg-opacity-20 rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0 mr-3"><i class="fas ${icon} text-sm"></i></div><span class="text-sm font-medium leading-tight">${msg}</span>`;
+            
+            document.getElementById('toastContainer').appendChild(toast);
+            
+            setTimeout(() => { 
+                toast.classList.replace('toast-enter', 'toast-exit'); 
+                setTimeout(() => toast.remove(), 300); 
+            }, 4000);
+        }
+
+        // Preview Foto & Validasi Ukuran
         function updateFotoLabel(input) {
             const label = document.getElementById('fotoLabel');
+            const iconContainer = document.getElementById('fotoIcon');
+            const previewContainer = document.getElementById('fotoPreviewContainer');
+            const previewImage = document.getElementById('fotoPreview');
+
             if (input.files && input.files[0]) {
                 const file = input.files[0];
-                if (file.size > 2 * 1024 * 1024) { // 2MB Check
-                    alert('Ukuran foto terlalu besar! Maksimal 2 MB.');
+                
+                // Cek ukuran file (Maksimal 2MB)
+                if (file.size > 2 * 1024 * 1024) { 
+                    showToast('Ukuran foto terlalu besar! Maksimal 2 MB.', 'warning');
                     input.value = '';
-                    label.innerHTML = 'Ketuk untuk mengambil/memilih foto';
+                    resetFotoPreview();
                     return;
                 }
-                label.innerHTML = `<span class="text-blue-600 font-bold"><i class="fas fa-image mr-1"></i> ${file.name}</span>`;
+
+                // Tampilkan nama file
+                label.innerHTML = `<span class="text-blue-600 font-bold"><i class="fas fa-check-circle mr-1"></i> Foto Siap Diunggah</span>`;
+                
+                // Gunakan FileReader untuk membuat preview gambar
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    previewImage.src = e.target.result;
+                    iconContainer.classList.add('hidden');
+                    previewContainer.classList.remove('hidden');
+                }
+                reader.readAsDataURL(file);
+                
             } else {
-                label.innerHTML = 'Ketuk untuk mengambil/memilih foto';
+                resetFotoPreview();
             }
         }
 
+        // Reset tampilan foto kembali ke awal
+        function resetFotoPreview() {
+            document.getElementById('fotoLabel').innerHTML = 'Ketuk untuk mengambil/memilih foto';
+            document.getElementById('fotoIcon').classList.remove('hidden');
+            document.getElementById('fotoPreviewContainer').classList.add('hidden');
+            document.getElementById('fotoPreview').src = '';
+        }
+
+        // Handle Form Submit
         document.getElementById('publicPengaduanForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             
@@ -132,10 +198,10 @@
             loader.classList.remove('hidden');
 
             const payload = {
-                lokasi: document.getElementById('inpLokasi').value,
-                kendala: document.getElementById('inpKendala').value,
-                pelapor: document.getElementById('inpPelapor').value || 'Anonim',
-                identitas: document.getElementById('inpIdentitas').value || '-',
+                lokasi: document.getElementById('inpLokasi').value.trim(),
+                kendala: document.getElementById('inpKendala').value.trim(),
+                pelapor: document.getElementById('inpPelapor').value.trim() || 'Anonim',
+                identitas: document.getElementById('inpIdentitas').value.trim() || '-',
                 status: 'Menunggu'
             };
 
@@ -152,7 +218,9 @@
                         .from('pengaduan')
                         .upload(fileName, file, { cacheControl: '3600', upsert: false });
                         
-                    if (uploadError) throw new Error("Gagal mengupload foto. Pastikan kebijakan Public Upload diaktifkan.");
+                    if (uploadError) {
+                        throw new Error("Gagal mengupload foto. Pastikan kebijakan Public Upload diaktifkan.");
+                    }
                     
                     const { data: pubData } = supabaseClient.storage.from('pengaduan').getPublicUrl(fileName);
                     payload.foto_awal_url = pubData.publicUrl;
@@ -162,14 +230,21 @@
                 loaderText.textContent = "Menyimpan data laporan...";
                 const { error: insertError } = await supabaseClient.from('pengaduan').insert([payload]);
                 
-                if (insertError) throw new Error(insertError.message);
+                if (insertError) {
+                    throw new Error(insertError.message);
+                }
 
                 // 3. Sukses
                 document.getElementById('formArea').classList.add('hidden');
                 document.getElementById('successArea').classList.remove('hidden');
+                
+                // Beri haptic feedback jika didukung (untuk mobile)
+                if (window.navigator && window.navigator.vibrate) {
+                    navigator.vibrate([100, 50, 100]);
+                }
 
             } catch (error) {
-                alert("Terjadi kesalahan: " + error.message + "\n\nPastikan pengaturan 'Row Level Security (RLS)' untuk publik sudah diaktifkan di Supabase.");
+                showToast("Terjadi kesalahan: " + error.message, "error");
                 btn.disabled = false;
             } finally {
                 loader.classList.add('hidden');
