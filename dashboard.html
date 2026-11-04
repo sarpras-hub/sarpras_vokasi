@@ -528,6 +528,8 @@
                     <div class="col-span-2"><label class="block text-xs font-bold text-gray-600 mb-1 uppercase tracking-wide">Tanggal Pemakaian</label><input type="date" id="ruaDate" required class="w-full border-gray-300 rounded-lg px-3 py-2 bg-gray-50 border focus:bg-white outline-none focus:ring-2 focus:ring-blue-500 text-sm font-medium"></div>
                     <div><label class="block text-xs font-bold text-gray-600 mb-1 uppercase tracking-wide">Waktu Mulai</label><select id="ruaTimeStart" required class="w-full border-gray-300 rounded-lg px-3 py-2 bg-gray-50 border focus:bg-white outline-none focus:ring-2 focus:ring-blue-500 text-sm font-medium"></select></div>
                     <div><label class="block text-xs font-bold text-gray-600 mb-1 uppercase tracking-wide">Waktu Selesai</label><select id="ruaTimeEnd" required class="w-full border-gray-300 rounded-lg px-3 py-2 bg-gray-50 border focus:bg-white outline-none focus:ring-2 focus:ring-blue-500 text-sm font-medium"></select></div>
+                    <div><label class="block text-xs font-bold text-gray-600 mb-1 uppercase tracking-wide">Kapasitas (Peserta)</label><input type="number" id="ruaKapasitas" required placeholder="0" class="w-full border-gray-300 rounded-lg px-3 py-2 bg-gray-50 border focus:bg-white outline-none focus:ring-2 focus:ring-blue-500 text-sm font-medium"></div>
+                    <div><label class="block text-xs font-bold text-gray-600 mb-1 uppercase tracking-wide">Fasilitas Tambahan</label><input type="text" id="ruaFasilitas" placeholder="LCD, Mic, AC..." class="w-full border-gray-300 rounded-lg px-3 py-2 bg-gray-50 border focus:bg-white outline-none focus:ring-2 focus:ring-blue-500 text-sm font-medium"></div>
                     <div><label class="block text-xs font-bold text-gray-600 mb-1 uppercase tracking-wide">PIC</label><input type="text" id="ruaPIC" required placeholder="Nama pengaju..." class="w-full border-gray-300 rounded-lg px-3 py-2 bg-gray-50 border focus:bg-white outline-none focus:ring-2 focus:ring-blue-500 text-sm font-medium"></div>
                     <div><label class="block text-xs font-bold text-gray-600 mb-1 uppercase tracking-wide">Contact Person (HP/WA)</label><input type="text" id="ruaCP" required placeholder="08xxxxxxxxxx" class="w-full border-gray-300 rounded-lg px-3 py-2 bg-gray-50 border focus:bg-white outline-none focus:ring-2 focus:ring-blue-500 text-sm font-medium"></div>
                 </div>
@@ -763,7 +765,7 @@
             if(backgroundSyncTimer) supabaseClient.removeChannel(backgroundSyncTimer);
             await supabaseClient.auth.signOut();
             sessionStorage.removeItem('vokasi_last_tab');
-            window.location.href = "index.html";
+            window.location.href = "login.html";
         };
 
         function setupAccessControl(role) {
@@ -1064,7 +1066,7 @@
                     <td class="px-6 py-4"><div class="font-bold text-gray-800">${t.event || '-'}</div><div class="text-xs text-gray-500 mt-1"><i class="fas fa-map-marker-alt text-red-400 mr-1"></i>${t.room||'-'}</div><div class="text-xs text-gray-500 mt-1"><i class="fas fa-user mr-1"></i>${t.pic||'-'}</div></td>
                     <td class="px-6 py-4 text-center"><div class="font-medium text-blue-700 bg-blue-50 px-2 py-1 rounded inline-block text-[11px]">${t.type || '-'}</div><div class="text-sm font-bold text-gray-700 mt-1">${t.portion || 0} Porsi</div><div class="text-[11px] text-gray-500">@ ${formatIDR(t.unitPrice)}</div><div class="text-xs font-bold text-green-700 mt-1 border-t pt-1 border-gray-100">${formatIDR(t.amount)}</div></td>
                     <td class="px-6 py-4 text-center whitespace-nowrap"><label class="inline-flex items-center space-x-2 cursor-pointer bg-white hover:bg-gray-50 border border-gray-200 shadow-sm px-2.5 py-1.5 rounded-lg select-none"><input type="checkbox" ${isApproved?'checked':''} onchange="toggleKonsumsiStatusDirect('${t.id}', this.checked)" class="w-4 h-4 text-green-600 rounded border-gray-300 focus:ring-green-500 cursor-pointer"><span class="text-xs font-bold ${isApproved?'text-green-700':'text-amber-700'}">${isApproved?'Disetujui':'Menunggu'}</span></label></td>
-                    <td class="px-6 py-4 whitespace-nowrap text-center"><div class="inline-flex flex-col items-start space-y-1.5 bg-gray-50 p-2.5 rounded-lg border border-gray-200 text-xs"><label class="flex items-center cursor-pointer space-x-2"><input type="checkbox" ${sN?'checked':''} onchange="toggleKonsumsiSpjItem('${t.id}', 'spj_nota', this.checked)" class="rounded text-blue-600"><span class="${sN?'font-semibold text-gray-800':'text-gray-500'}">Nota Beli</span></label><label class="flex items-center cursor-pointer space-x-2"><input type="checkbox" ${sU?'checked':''} onchange="toggleKonsumsiSpjItem('${t.id}', 'spj_undangan', this.checked)" class="rounded text-blue-600"><span class="${sU?'font-semibold text-gray-800':'text-gray-500'}">Undangan</span></label><label class="flex items-center cursor-pointer space-x-2"><input type="checkbox" ${sD?'checked':''} onchange="toggleKonsumsiSpjItem('${t.id}', 'spj_hadir', this.checked)" class="rounded text-blue-600"><span class="${sD?'font-semibold text-gray-800':'text-gray-500'}">Daftar Hadir</span></label></div><div class="mt-2">${isSpjFull ? '<span class="text-[10px] font-bold text-green-700 bg-green-100 px-2 py-0.5 rounded"><i class="fas fa-check-double mr-1"></i>SPJ Lengkap</span>' : '<span class="text-[10px] font-medium text-amber-700 bg-amber-50 px-2 py-0.5 rounded">Belum Lengkap</span>'}</div></td>
+                    <td class="px-6 py-4 whitespace-nowrap text-center"><div class="inline-flex flex-col items-start space-y-1.5 bg-gray-50 p-2.5 rounded-lg border border-gray-200 text-xs"><label class="flex items-center cursor-pointer space-x-2"><input type="checkbox" ${sN?'checked':''} onchange="toggleKonsumsiSpjItem('${t.id}', 'spj_nota', this.checked)" class="rounded text-blue-600"><span class="${sN?'font-semibold text-gray-800':'text-gray-50'}">Nota Beli</span></label><label class="flex items-center cursor-pointer space-x-2"><input type="checkbox" ${sU?'checked':''} onchange="toggleKonsumsiSpjItem('${t.id}', 'spj_undangan', this.checked)" class="rounded text-blue-600"><span class="${sU?'font-semibold text-gray-800':'text-gray-500'}">Undangan</span></label><label class="flex items-center cursor-pointer space-x-2"><input type="checkbox" ${sD?'checked':''} onchange="toggleKonsumsiSpjItem('${t.id}', 'spj_hadir', this.checked)" class="rounded text-blue-600"><span class="${sD?'font-semibold text-gray-800':'text-gray-500'}">Daftar Hadir</span></label></div><div class="mt-2">${isSpjFull ? '<span class="text-[10px] font-bold text-green-700 bg-green-100 px-2 py-0.5 rounded"><i class="fas fa-check-double mr-1"></i>SPJ Lengkap</span>' : '<span class="text-[10px] font-medium text-amber-700 bg-amber-50 px-2 py-0.5 rounded">Belum Lengkap</span>'}</div></td>
                     <td class="px-6 py-4 text-center space-x-1 whitespace-nowrap">${!isApproved ? `<button onclick="editKonsumsi('${t.id}')" class="text-blue-500 hover:bg-blue-50 p-2 rounded-lg transition-colors"><i class="fas fa-edit"></i></button>` : ''}<button onclick="deleteDocHandler('konsumsi', '${t.id}')" class="text-red-400 hover:bg-red-50 p-2 rounded-lg transition-colors"><i class="fas fa-trash-alt"></i></button></td>
                 </tr>`;
                 tbody.insertAdjacentHTML('beforeend', html);
@@ -1265,70 +1267,99 @@
         document.getElementById('formAnggaran').addEventListener('submit', async (e) => {
             e.preventDefault(); if(!currentUser) return;
             const btn = document.getElementById('btnSubmitAnggaran'); btn.disabled = true; btn.querySelector('.loading-icon').classList.remove('hidden');
-            const type = document.getElementById('anggaranType').value, editId = document.getElementById('angEditId').value;
-            const existingSpj = editId ? ((allTransactions||[]).find(t => t.id === editId)?.isSpj || false) : false;
-            
-            const payload = {
-                tipe_transaksi: type, tanggal: document.getElementById('anggaranDate').value,
-                kategori: document.getElementById('anggaranMenu').value, sub_kategori: document.getElementById('anggaranSubMenu').value,
-                sub_sub_kategori: document.getElementById('anggaranSubSubMenu').value, requester: document.getElementById('anggaranRequester').value,
-                metode_bayar: type === 'expense' ? document.getElementById('anggaranMetode').value : '-', is_spj: type === 'expense' ? existingSpj : false,
-                nominal: parseFloat(document.getElementById('anggaranAmount').value) || 0, deskripsi: document.getElementById('anggaranDesc').value, user_id: currentUser.id
-            };
             
             try {
-                if(editId) await supabaseClient.from('anggaran').update(payload).eq('id', editId);
-                else await supabaseClient.from('anggaran').insert([payload]);
+                const type = document.getElementById('anggaranType')?.value, editId = document.getElementById('angEditId')?.value;
+                const existingSpj = editId ? ((allTransactions||[]).find(t => t.id === editId)?.isSpj || false) : false;
+                
+                const payload = {
+                    tipe_transaksi: type, tanggal: document.getElementById('anggaranDate')?.value,
+                    kategori: document.getElementById('anggaranMenu')?.value, sub_kategori: document.getElementById('anggaranSubMenu')?.value,
+                    sub_sub_kategori: document.getElementById('anggaranSubSubMenu')?.value, requester: document.getElementById('anggaranRequester')?.value,
+                    metode_bayar: type === 'expense' ? document.getElementById('anggaranMetode')?.value : '-', is_spj: type === 'expense' ? existingSpj : false,
+                    nominal: parseFloat(document.getElementById('anggaranAmount')?.value) || 0, deskripsi: document.getElementById('anggaranDesc')?.value, user_id: currentUser.id
+                };
+                
+                let res;
+                if(editId) res = await supabaseClient.from('anggaran').update(payload).eq('id', editId);
+                else res = await supabaseClient.from('anggaran').insert([payload]);
+                
+                if (res.error) throw res.error;
                 closeModals(); showToast("Berhasil Disimpan", "success"); fetchData();
-            } catch(err) { showToast(err.message || "Gagal simpan", "error"); }
-            btn.disabled = false; btn.querySelector('.loading-icon').classList.add('hidden');
+            } catch(err) { 
+                console.error(err); 
+                showToast(err.message || "Gagal simpan", "error"); 
+            } finally {
+                btn.disabled = false; btn.querySelector('.loading-icon').classList.add('hidden');
+            }
         });
 
         document.getElementById('formKonsumsi').addEventListener('submit', async (e) => {
             e.preventDefault(); if(!currentUser) return;
             const btn = document.getElementById('btnSubmitKonsumsi'); btn.disabled = true; btn.querySelector('.loading-icon').classList.remove('hidden');
-            const editId = document.getElementById('konEditId').value;
-            
-            const payload = {
-                kegiatan: document.getElementById('konEvent').value, tanggal: document.getElementById('konDate').value, waktu: document.getElementById('konTime').value,
-                ruangan: document.getElementById('konRoom').value, pic: document.getElementById('konPIC').value, jenis_konsumsi: document.getElementById('konType').value,
-                porsi: parseInt(document.getElementById('konPortion').value) || 0, harga_satuan: parseFloat(document.getElementById('konUnitPrice').value) || 0,
-                total_estimasi: parseFloat(document.getElementById('konAmount').value) || 0, catatan: document.getElementById('konNotes').value
-            };
             
             try {
-                if(editId) await supabaseClient.from('konsumsi').update(payload).eq('id', editId);
-                else { payload.status = 'Menunggu'; payload.spj_nota = false; payload.spj_undangan = false; payload.spj_hadir = false; await supabaseClient.from('konsumsi').insert([payload]); }
+                const editId = document.getElementById('konEditId')?.value;
+                const payload = {
+                    kegiatan: document.getElementById('konEvent')?.value, tanggal: document.getElementById('konDate')?.value, waktu: document.getElementById('konTime')?.value,
+                    ruangan: document.getElementById('konRoom')?.value, pic: document.getElementById('konPIC')?.value, jenis_konsumsi: document.getElementById('konType')?.value,
+                    porsi: parseInt(document.getElementById('konPortion')?.value) || 0, harga_satuan: parseFloat(document.getElementById('konUnitPrice')?.value) || 0,
+                    total_estimasi: parseFloat(document.getElementById('konAmount')?.value) || 0, catatan: document.getElementById('konNotes')?.value
+                };
+                
+                let res;
+                if(editId) res = await supabaseClient.from('konsumsi').update(payload).eq('id', editId);
+                else { payload.status = 'Menunggu'; payload.spj_nota = false; payload.spj_undangan = false; payload.spj_hadir = false; res = await supabaseClient.from('konsumsi').insert([payload]); }
+                
+                if (res.error) throw res.error;
                 closeModals(); showToast("Berhasil Disimpan", "success"); fetchData();
-            } catch(err) { showToast("Gagal simpan", "error"); }
-            btn.disabled = false; btn.querySelector('.loading-icon').classList.add('hidden');
+            } catch(err) { 
+                console.error(err); 
+                showToast(err.message || "Gagal simpan", "error"); 
+            } finally {
+                btn.disabled = false; btn.querySelector('.loading-icon').classList.add('hidden');
+            }
         });
 
         document.getElementById('formRuangan').addEventListener('submit', async (e) => {
             e.preventDefault(); if(!currentUser) return;
             const btn = document.getElementById('btnSubmitRuangan'); btn.disabled = true; btn.querySelector('.loading-icon').classList.remove('hidden');
-            const editId = document.getElementById('ruaEditId').value, tStart = document.getElementById('ruaTimeStart').value, tEnd = document.getElementById('ruaTimeEnd').value, rDate = document.getElementById('ruaDate').value, rRoom = document.getElementById('ruaName').value;
             
-            if(tStart >= tEnd) { btn.disabled = false; btn.querySelector('.loading-icon').classList.add('hidden'); return showToast("Selesai harus setelah Mulai!", "warning"); }
-            const isConflict = (allRuangan||[]).some(r => { if (r.status === 'Ditolak' || (editId && r.id === editId)) return false; return (r.roomName === rRoom && safeExtractDate(r.date) === rDate && tStart < formatTime(r.timeEnd) && tEnd > formatTime(r.timeStart)); });
-            if(isConflict) { btn.disabled = false; btn.querySelector('.loading-icon').classList.add('hidden'); return showToast("BENTROK! Ruangan terpakai.", "error"); }
-            
-            const payload = { nama_ruangan: rRoom, kegiatan: document.getElementById('ruaEvent').value, tanggal: rDate, waktu_mulai: tStart, waktu_selesai: tEnd, pic: document.getElementById('ruaPIC').value, kontak: document.getElementById('ruaCP').value, kapasitas: parseInt(document.getElementById('ruaKapasitas').value) || 0, fasilitas: document.getElementById('ruaFasilitas').value };
             try {
-                if(editId) await supabaseClient.from('ruangan').update(payload).eq('id', editId);
-                else { payload.status = 'Menunggu'; payload.alasan_tolak = ''; await supabaseClient.from('ruangan').insert([payload]); }
+                const editId = document.getElementById('ruaEditId')?.value, tStart = document.getElementById('ruaTimeStart')?.value, tEnd = document.getElementById('ruaTimeEnd')?.value, rDate = document.getElementById('ruaDate')?.value, rRoom = document.getElementById('ruaName')?.value;
+                
+                if(tStart >= tEnd) throw new Error("Waktu Selesai harus setelah waktu Mulai!");
+                const isConflict = (allRuangan||[]).some(r => { if (r.status === 'Ditolak' || (editId && r.id === editId)) return false; return (r.roomName === rRoom && safeExtractDate(r.date) === rDate && tStart < formatTime(r.timeEnd) && tEnd > formatTime(r.timeStart)); });
+                if(isConflict) throw new Error("BENTROK! Ruangan terpakai pada waktu tersebut.");
+                
+                const payload = { 
+                    nama_ruangan: rRoom, kegiatan: document.getElementById('ruaEvent')?.value, tanggal: rDate, waktu_mulai: tStart, waktu_selesai: tEnd, 
+                    pic: document.getElementById('ruaPIC')?.value, kontak: document.getElementById('ruaCP')?.value, 
+                    kapasitas: parseInt(document.getElementById('ruaKapasitas')?.value) || 0, fasilitas: document.getElementById('ruaFasilitas')?.value || '' 
+                };
+                
+                let res;
+                if(editId) res = await supabaseClient.from('ruangan').update(payload).eq('id', editId);
+                else { payload.status = 'Menunggu'; payload.alasan_tolak = ''; res = await supabaseClient.from('ruangan').insert([payload]); }
+                
+                if (res.error) throw res.error;
                 closeModals(); showToast("Berhasil Disimpan", "success"); fetchData();
-            } catch(err) { showToast("Gagal simpan", "error"); }
-            btn.disabled = false; btn.querySelector('.loading-icon').classList.add('hidden');
+            } catch(err) { 
+                console.error(err); 
+                showToast(err.message || "Gagal simpan", "error"); 
+            } finally {
+                btn.disabled = false; btn.querySelector('.loading-icon').classList.add('hidden');
+            }
         });
 
         document.getElementById('formPengaduan').addEventListener('submit', async (e) => {
             e.preventDefault(); if(!currentUser) return;
             const btn = document.getElementById('btnSubmitPengaduan'); btn.disabled = true; btn.querySelector('.loading-icon').classList.remove('hidden');
-            const editId = document.getElementById('aduanEditId').value;
-            const payload = { status: document.getElementById('aduanStatus').value, teknisi: document.getElementById('aduanTeknisi').value, keterangan_selesai: document.getElementById('aduanKetSelesai').value };
-
+            
             try {
+                const editId = document.getElementById('aduanEditId')?.value;
+                const payload = { status: document.getElementById('aduanStatus')?.value, teknisi: document.getElementById('aduanTeknisi')?.value, keterangan_selesai: document.getElementById('aduanKetSelesai')?.value };
+
                 const fileInput = document.getElementById('aduanFotoSelesaiFile');
                 if (fileInput && fileInput.files.length > 0) {
                     const file = fileInput.files[0];
@@ -1341,24 +1372,38 @@
                     const { data: pubData } = supabaseClient.storage.from('pengaduan').getPublicUrl(fileName);
                     payload.foto_selesai_url = pubData.publicUrl;
                 }
-                await supabaseClient.from('pengaduan').update(payload).eq('id', editId);
+                const { error } = await supabaseClient.from('pengaduan').update(payload).eq('id', editId);
+                if (error) throw error;
+                
                 closeModals(); showToast("Tindak Lanjut Disimpan", "success"); fetchData();
-            } catch(err) { showToast(err.message || "Gagal update", "error"); }
-            btn.disabled = false; btn.querySelector('.loading-icon').classList.add('hidden');
+            } catch(err) { 
+                console.error(err); 
+                showToast(err.message || "Gagal update", "error"); 
+            } finally {
+                btn.disabled = false; btn.querySelector('.loading-icon').classList.add('hidden');
+            }
         });
 
         document.getElementById('formPengguna').addEventListener('submit', async (e) => {
             e.preventDefault(); if(!currentUser || currentUser.role !== 'admin') return;
             const btn = document.getElementById('btnSubmitPengguna'); btn.disabled = true; btn.querySelector('.loading-icon').classList.remove('hidden');
-            const editId = document.getElementById('userEditId').value, roleSelection = document.getElementById('userRole').value;
-            const payload = { email: document.getElementById('userUsername').value.toLowerCase().trim(), nama: document.getElementById('userName').value.trim(), role: roleSelection };
             
             try {
-                if(editId) await supabaseClient.from('pengguna').update(payload).eq('id', editId);
-                else await supabaseClient.from('pengguna').insert([payload]);
+                const editId = document.getElementById('userEditId')?.value, roleSelection = document.getElementById('userRole')?.value;
+                const payload = { email: document.getElementById('userUsername')?.value.toLowerCase().trim(), nama: document.getElementById('userName')?.value.trim(), role: roleSelection };
+                
+                let res;
+                if(editId) res = await supabaseClient.from('pengguna').update(payload).eq('id', editId);
+                else res = await supabaseClient.from('pengguna').insert([payload]);
+                
+                if (res.error) throw res.error;
                 closeModals(); showToast("Profil Disimpan", "success"); fetchData();
-            } catch(err) { showToast("Gagal menyimpan akun", "error"); }
-            btn.disabled = false; btn.querySelector('.loading-icon').classList.add('hidden');
+            } catch(err) { 
+                console.error(err); 
+                showToast(err.message || "Gagal menyimpan akun", "error"); 
+            } finally {
+                btn.disabled = false; btn.querySelector('.loading-icon').classList.add('hidden');
+            }
         });
 
         // Fitur Auto-Fill saat memilih Ruangan di form Peminjaman
@@ -1377,27 +1422,35 @@
         document.getElementById('formMaster').addEventListener('submit', async (e) => {
             e.preventDefault(); if(!currentUser || currentUser.role !== 'admin') return;
             const btn = document.getElementById('btnSubmitMaster'); btn.disabled = true; btn.querySelector('.loading-icon').classList.remove('hidden');
-            const editId = document.getElementById('masterEditId').value, type = document.getElementById('masterType').value;
-            const payload = { 
-                tipe: type, 
-                val1: document.getElementById('masterVal1').value.trim(), 
-                val2: type === 'KategoriAnggaran' ? document.getElementById('masterVal2').value.trim() : '', 
-                val3: type === 'KategoriAnggaran' ? document.getElementById('masterVal3').value.trim() : '' 
-            };
-
-            // Masukkan atribut tambahan khusus ruangan
-            if(type === 'Ruangan') {
-                payload.kapasitas = parseInt(document.getElementById('masterKapasitas').value) || 0;
-                payload.fasilitas = document.getElementById('masterFasilitas').value.trim();
-                payload.ukuran_ruang = document.getElementById('masterUkuran').value.trim();
-            }
-
+            
             try {
-                if(editId) await supabaseClient.from('master_data').update(payload).eq('id', editId);
-                else await supabaseClient.from('master_data').insert([payload]);
+                const editId = document.getElementById('masterEditId')?.value, type = document.getElementById('masterType')?.value;
+                const payload = { 
+                    tipe: type, 
+                    val1: document.getElementById('masterVal1')?.value.trim(), 
+                    val2: type === 'KategoriAnggaran' ? document.getElementById('masterVal2')?.value.trim() : '', 
+                    val3: type === 'KategoriAnggaran' ? document.getElementById('masterVal3')?.value.trim() : '' 
+                };
+
+                // Masukkan atribut tambahan khusus ruangan
+                if(type === 'Ruangan') {
+                    payload.kapasitas = parseInt(document.getElementById('masterKapasitas')?.value) || 0;
+                    payload.fasilitas = document.getElementById('masterFasilitas')?.value.trim() || '';
+                    payload.ukuran_ruang = document.getElementById('masterUkuran')?.value.trim() || '';
+                }
+
+                let res;
+                if(editId) res = await supabaseClient.from('master_data').update(payload).eq('id', editId);
+                else res = await supabaseClient.from('master_data').insert([payload]);
+                
+                if (res.error) throw res.error;
                 closeModals(); showToast("Master Data Disimpan", "success"); fetchData();
-            } catch(err) { showToast("Gagal menyimpan. Pastikan SQL sudah dijalankan di Supabase.", "error"); }
-            btn.disabled = false; btn.querySelector('.loading-icon').classList.add('hidden');
+            } catch(err) { 
+                console.error(err); 
+                showToast(err.message || "Gagal menyimpan data master", "error"); 
+            } finally {
+                btn.disabled = false; btn.querySelector('.loading-icon').classList.add('hidden');
+            }
         });
 
         // ==========================
