@@ -259,9 +259,10 @@
 
                 <!-- KONTEN: RUANGAN -->
                 <div id="section-ruangan" class="hidden tab-content-enter space-y-6">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <div class="glass-panel rounded-xl p-5 border border-gray-100 shadow-sm flex items-center"><div class="rounded-full bg-yellow-100 p-3 mr-4"><i class="fas fa-clock text-xl text-yellow-600"></i></div><div><p class="text-sm text-gray-500 font-medium">Menunggu Verifikasi</p><h4 class="text-xl font-bold text-gray-800" id="statRuanganPending">0</h4></div></div>
                         <div class="glass-panel rounded-xl p-5 border border-gray-100 shadow-sm flex items-center"><div class="rounded-full bg-green-100 p-3 mr-4"><i class="fas fa-check-circle text-xl text-green-600"></i></div><div><p class="text-sm text-gray-500 font-medium">Telah Disetujui</p><h4 class="text-xl font-bold text-gray-800" id="statRuanganApproved">0</h4></div></div>
+                        <div class="glass-panel rounded-xl p-5 border border-gray-100 shadow-sm flex items-center"><div class="rounded-full bg-red-100 p-3 mr-4"><i class="fas fa-times-circle text-xl text-red-600"></i></div><div><p class="text-sm text-gray-500 font-medium">Ditolak</p><h4 class="text-xl font-bold text-gray-800" id="statRuanganRejected">0</h4></div></div>
                     </div>
                     <div class="glass-panel rounded-xl shadow-sm border border-gray-100 p-0 overflow-hidden">
                         <div class="p-5 border-b border-gray-100 flex flex-col md:flex-row md:items-center justify-between bg-gray-50 space-y-3 md:space-y-0">
@@ -1138,6 +1139,8 @@
             const allYearData = (allRuangan || []).filter(t => t.year == selectedYear);
             document.getElementById('statRuanganPending').textContent = allYearData.filter(t => t.status==='Menunggu').length;
             document.getElementById('statRuanganApproved').textContent = allYearData.filter(t => t.status==='Disetujui').length;
+            const statRejectedEl = document.getElementById('statRuanganRejected');
+            if(statRejectedEl) statRejectedEl.textContent = allYearData.filter(t => t.status==='Ditolak').length;
             if(currentRuanganView === 'calendar') renderCalendarView();
         };
 
