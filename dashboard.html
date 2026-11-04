@@ -1406,16 +1406,24 @@
             }
         });
 
-        // Fitur Auto-Fill saat memilih Ruangan di form Peminjaman
+        // Fitur Auto-Fill saat memilih Ruangan (Hanya mengisi jika input masih kosong atau user baru pertama kali memilih)
         document.getElementById('ruaName')?.addEventListener('change', function(e) {
             const rName = e.target.value;
             if(rName && window.roomMasterDetails && window.roomMasterDetails[rName]) {
                 const details = window.roomMasterDetails[rName];
-                if(details.kapasitas) document.getElementById('ruaKapasitas').value = details.kapasitas;
+                const kapInput = document.getElementById('ruaKapasitas');
+                const fasInput = document.getElementById('ruaFasilitas');
+                
+                // Isi otomatis hanya jika field masih kosong
+                if(details.kapasitas && (!kapInput.value || kapInput.value == "0")) {
+                    kapInput.value = details.kapasitas;
+                }
                 
                 let fasDesc = details.fasilitas || '';
                 if(details.ukuran) fasDesc = (fasDesc ? fasDesc + ' | ' : '') + 'Ukuran: ' + details.ukuran;
-                if(fasDesc) document.getElementById('ruaFasilitas').value = fasDesc;
+                if(fasDesc && !fasInput.value) {
+                    fasInput.value = fasDesc;
+                }
             }
         });
 
