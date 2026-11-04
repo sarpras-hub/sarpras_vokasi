@@ -528,8 +528,8 @@
                     <div class="col-span-2"><label class="block text-xs font-bold text-gray-600 mb-1 uppercase tracking-wide">Tanggal Pemakaian</label><input type="date" id="ruaDate" required class="w-full border-gray-300 rounded-lg px-3 py-2 bg-gray-50 border focus:bg-white outline-none focus:ring-2 focus:ring-blue-500 text-sm font-medium"></div>
                     <div><label class="block text-xs font-bold text-gray-600 mb-1 uppercase tracking-wide">Waktu Mulai</label><select id="ruaTimeStart" required class="w-full border-gray-300 rounded-lg px-3 py-2 bg-gray-50 border focus:bg-white outline-none focus:ring-2 focus:ring-blue-500 text-sm font-medium"></select></div>
                     <div><label class="block text-xs font-bold text-gray-600 mb-1 uppercase tracking-wide">Waktu Selesai</label><select id="ruaTimeEnd" required class="w-full border-gray-300 rounded-lg px-3 py-2 bg-gray-50 border focus:bg-white outline-none focus:ring-2 focus:ring-blue-500 text-sm font-medium"></select></div>
-                    <div><label class="block text-xs font-bold text-gray-600 mb-1 uppercase tracking-wide">Kapasitas (Peserta)</label><input type="number" id="ruaKapasitas" required placeholder="0" class="w-full border-gray-300 rounded-lg px-3 py-2 bg-gray-50 border focus:bg-white outline-none focus:ring-2 focus:ring-blue-500 text-sm font-medium"></div>
-                    <div><label class="block text-xs font-bold text-gray-600 mb-1 uppercase tracking-wide">Fasilitas Tambahan</label><input type="text" id="ruaFasilitas" placeholder="LCD, Mic, AC..." class="w-full border-gray-300 rounded-lg px-3 py-2 bg-gray-50 border focus:bg-white outline-none focus:ring-2 focus:ring-blue-500 text-sm font-medium"></div>
+                    <div><label class="block text-xs font-bold text-gray-600 mb-1 uppercase tracking-wide">Kapasitas (Peserta)</label><input type="number" id="ruaKapasitas" readonly placeholder="0" class="w-full border-gray-300 rounded-lg px-3 py-2 bg-gray-200 border outline-none text-sm font-bold text-gray-700 cursor-not-allowed shadow-inner"></div>
+                    <div><label class="block text-xs font-bold text-gray-600 mb-1 uppercase tracking-wide">Fasilitas Tambahan</label><input type="text" id="ruaFasilitas" readonly placeholder="Otomatis terisi..." class="w-full border-gray-300 rounded-lg px-3 py-2 bg-gray-200 border outline-none text-sm font-bold text-gray-700 cursor-not-allowed shadow-inner"></div>
                     <div><label class="block text-xs font-bold text-gray-600 mb-1 uppercase tracking-wide">PIC</label><input type="text" id="ruaPIC" required placeholder="Nama pengaju..." class="w-full border-gray-300 rounded-lg px-3 py-2 bg-gray-50 border focus:bg-white outline-none focus:ring-2 focus:ring-blue-500 text-sm font-medium"></div>
                     <div><label class="block text-xs font-bold text-gray-600 mb-1 uppercase tracking-wide">Contact Person (HP/WA)</label><input type="text" id="ruaCP" required placeholder="08xxxxxxxxxx" class="w-full border-gray-300 rounded-lg px-3 py-2 bg-gray-50 border focus:bg-white outline-none focus:ring-2 focus:ring-blue-500 text-sm font-medium"></div>
                 </div>
@@ -1406,24 +1406,25 @@
             }
         });
 
-        // Fitur Auto-Fill saat memilih Ruangan (Hanya mengisi jika input masih kosong atau user baru pertama kali memilih)
+        // Fitur Auto-Fill saat memilih Ruangan (Update otomatis kapasitas & fasilitas)
         document.getElementById('ruaName')?.addEventListener('change', function(e) {
             const rName = e.target.value;
+            const kapInput = document.getElementById('ruaKapasitas');
+            const fasInput = document.getElementById('ruaFasilitas');
+            
             if(rName && window.roomMasterDetails && window.roomMasterDetails[rName]) {
                 const details = window.roomMasterDetails[rName];
-                const kapInput = document.getElementById('ruaKapasitas');
-                const fasInput = document.getElementById('ruaFasilitas');
                 
-                // Isi otomatis hanya jika field masih kosong
-                if(details.kapasitas && (!kapInput.value || kapInput.value == "0")) {
-                    kapInput.value = details.kapasitas;
-                }
+                // Selalu diupdate nilainya (karena sekarang read-only)
+                kapInput.value = details.kapasitas || 0;
                 
                 let fasDesc = details.fasilitas || '';
                 if(details.ukuran) fasDesc = (fasDesc ? fasDesc + ' | ' : '') + 'Ukuran: ' + details.ukuran;
-                if(fasDesc && !fasInput.value) {
-                    fasInput.value = fasDesc;
-                }
+                fasInput.value = fasDesc;
+                
+            } else {
+                kapInput.value = '';
+                fasInput.value = '';
             }
         });
 
