@@ -1485,13 +1485,63 @@
         };
 
         window.toggleSpjDirect = async function(id, checked) {
-            showLoader(true); try { await supabaseClient.from('anggaran').update({is_spj: checked}).eq('id', id); showToast("Status SPJ diupdate", "success"); } catch(e) { showToast("Gagal update", "error"); } showLoader(false);
+            showLoader(true); 
+            try { 
+                const { error } = await supabaseClient.from('anggaran').update({is_spj: checked}).eq('id', id); 
+                if (error) throw error;
+                
+                // Update state lokal langsung agar tabel, total saldo, dan grafik tereset secara otomatis tanpa refresh
+                const item = (allTransactions || []).find(t => t.id === id);
+                if (item) item.isSpj = checked;
+                
+                processAllData();
+                showToast("Status SPJ berhasil diperbarui", "success"); 
+            } catch(e) { 
+                console.error(e);
+                showToast("Gagal memperbarui status SPJ", "error"); 
+            } finally {
+                showLoader(false);
+            }
         };
+        
         window.toggleKonsumsiStatusDirect = async function(id, checked) {
-            showLoader(true); try { await supabaseClient.from('konsumsi').update({status: checked ? 'Disetujui' : 'Menunggu'}).eq('id', id); showToast("Status Konsumsi diupdate", "success"); } catch(e) { showToast("Gagal update", "error"); } showLoader(false);
+            showLoader(true); 
+            try { 
+                const newStatus = checked ? 'Disetujui' : 'Menunggu';
+                const { error } = await supabaseClient.from('konsumsi').update({status: newStatus}).eq('id', id); 
+                if (error) throw error;
+                
+                const item = (allKonsumsi || []).find(t => t.id === id);
+                if (item) item.status = newStatus;
+                
+                processAllData();
+                showToast("Status Konsumsi diupdate", "success"); 
+            } catch(e) { 
+                console.error(e);
+                showToast("Gagal update status konsumsi", "error"); 
+            } finally {
+                showLoader(false);
+            }
         };
+
         window.toggleKonsumsiSpjItem = async function(id, field, checked) {
-            try { await supabaseClient.from('konsumsi').update({[field]: checked}).eq('id', id); showToast("Dokumen SPJ dicatat", "success"); } catch(e) { showToast("Gagal update", "error"); }
+            try { 
+                const { error } = await supabaseClient.from('konsumsi').update({[field]: checked}).eq('id', id); 
+                if (error) throw error;
+                
+                const item = (allKonsumsi || []).find(t => t.id === id);
+                if (item) {
+                    if (field === 'spj_nota') item.spjNota = checked;
+                    if (field === 'spj_undangan') item.spjUndangan = checked;
+                    if (field === 'spj_hadir') item.spjDaftarHadir = checked;
+                }
+                
+                renderKonsumsi();
+                showToast("Dokumen SPJ dicatat", "success"); 
+            } catch(e) { 
+                console.error(e);
+                showToast("Gagal mencatat dokumen SPJ", "error"); 
+            }
         };
 
         // Custom Delete Confirmation - PENGGANTI confirm()
